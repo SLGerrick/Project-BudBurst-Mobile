@@ -19,6 +19,7 @@ import edu.ucla.cens.budburstmobile.helper.HelperPlantItem;
 import edu.ucla.cens.budburstmobile.helper.HelperSettings;
 import edu.ucla.cens.budburstmobile.helper.HelperSharedPreference;
 import edu.ucla.cens.budburstmobile.helper.HelperValues;
+import edu.ucla.cens.budburstmobile.myplants.PBBChangeMyPosition;
 import edu.ucla.cens.budburstmobile.onetime.OneTimePhenophase;
 import edu.ucla.cens.budburstmobile.utils.PBBItems;
 import edu.ucla.cens.budburstmobile.utils.QuickCapture;
@@ -51,12 +52,15 @@ import android.widget.Toast;
 
 public class FloraCacheHardLevel extends ListActivity {
 	
+	private HelperSharedPreference mPref;
 	private LocationManager mLocManager = null;
 	private HelperGpsHandler gpsHandler;
 	private boolean mIsBound;
 	private boolean mFirstTime = true;
 	private double mLatitude 		= 0.0;
 	private double mLongitude 		= 0.0;
+	private double gpsLatitude 		= 0.0;
+	private double gpsLongitude 	= 0.0;
 	private int mNumSpecies;
 	private int mGroupID;
 	private int mIndex;
@@ -120,6 +124,8 @@ public class FloraCacheHardLevel extends ListActivity {
 			if(extras.getBoolean("signal")) {
 				mLatitude = extras.getDouble("latitude");
 				mLongitude = extras.getDouble("longitude");
+				gpsLatitude = mLatitude;
+				gpsLongitude = mLongitude;
 				
 				mRefreshListBtn.setEnabled(true);
 				
@@ -155,6 +161,9 @@ public class FloraCacheHardLevel extends ListActivity {
 	    
 	    Intent gIntent = getIntent();
 	    mGroupID = gIntent.getExtras().getInt("group_id");
+	    
+	    //needed for map popup
+	    mPref = new HelperSharedPreference(this);
 	    
 	    mListArr = new ArrayList<HelperPlantItem>();
 	    
@@ -239,8 +248,60 @@ public class FloraCacheHardLevel extends ListActivity {
 			
 			startActivity(intent);
 		}
+		//map popup
+		else {
+			//TODO change radius to what Eric wants
+			if(mPlantList.get(mIndex).getDistance() < 100.0) {
+				Intent intentChange = new Intent(FloraCacheHardLevel.this, PBBChangeMyPosition.class);
+				intentChange.putExtra("from", HelperValues.FROM_FLORACACHE);
+				startActivity(intentChange);
+				
+				double mapLatitude =  Double.parseDouble(mPref.getPreferenceString("latitude2", "0.0"));
+				double mapLongitude = Double.parseDouble(mPref.getPreferenceString("longitude2", "0.0"));
+				mLatitude = mapLatitude;
+				mLongitude = mapLongitude;
+				//mAccuracy = mPref.getPreferencesString("accuracy", Float.toHexString(mAccuracy));
+				
+				float dist[] = new float[1];
+				float distLocs[] = new float[1];
+				double mTargetLatitude = mPlantList.get(mIndex).getLatitude();
+				double mTargetLongitude = mPlantList.get(mIndex).getLongitude();
+				Location.distanceBetween(mLatitude, mLongitude, mTargetLatitude, mTargetLongitude, dist);
+				Location.distanceBetween(mapLatitude, mapLongitude, gpsLatitude, gpsLongitude, distLocs);
+				double mDistance = dist[0];
+				double mapToGpsDistance = distLocs[0];
+				if(mDistance < 15.0 && mapToGpsDistance < 100) {
+					
+					Intent intent2 = new Intent(FloraCacheHardLevel.this, FloracacheDetail.class);
+					PBBItems pbbItems = new PBBItems();
+					pbbItems.setCommonName(mPlantList.get(mIndex).getCommonName());
+					pbbItems.setScienceName(mPlantList.get(mIndex).getScienceName());
+					pbbItems.setSpeciesID(mPlantList.get(mIndex).getUserSpeciesID());
+					pbbItems.setProtocolID(mPlantList.get(mIndex).getProtocolID());
+					pbbItems.setCategory(mPlantList.get(mIndex).getUserSpeciesCategoryID());
+					pbbItems.setFloracacheID(mPlantList.get(mIndex).getFloracacheID());
+					pbbItems.setLatitude(mPlantList.get(mIndex).getLatitude());
+					pbbItems.setLongitude(mPlantList.get(mIndex).getLongitude());
+					pbbItems.setIsFloracache(HelperValues.IS_FLORACACHE_YES);
+					pbbItems.setSpeciesImageID(mImageID);
+					
+					intent2.putExtra("pbbItem", pbbItems);
+					intent2.putExtra("image_id", mImageID);
+					startActivity(intent2);				
+				}
+				
+				else{
+					Toast.makeText(FloraCacheHardLevel.this, 
+							"Not close enough."+mDistance, 
+							Toast.LENGTH_SHORT).show();	
+				}
+				
+			}
+				
+		
 		else {
 			Toast.makeText(FloraCacheHardLevel.this, "Not close enough. Dist: " + String.format("%5.2f", mPlantList.get(mIndex).getDistance() * 3.2808399) + "ft", Toast.LENGTH_SHORT).show();	
+			}
 		}
 	}
 	
@@ -292,7 +353,7 @@ public class FloraCacheHardLevel extends ListActivity {
 	public boolean onCreateOptionsMenu(Menu menu){
 		super.onCreateOptionsMenu(menu);
 		
-		menu.add(0, 1, 0, getString(R.string.Floracache_Hard_Refresh)).setIcon(android.R.drawable.ic_menu_rotate);
+		menu.add(0, 1, 0, getString(R.string.Floracache_Hard_Refresh)).setIcon(R.drawable.ic_menu_refresh);
 			
 		return true;
 	}
