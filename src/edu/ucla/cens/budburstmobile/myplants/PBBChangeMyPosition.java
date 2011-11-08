@@ -51,6 +51,7 @@ public class PBBChangeMyPosition extends MapActivity {
 	private float mAccuracy = 0;
 	private TextView mylocInfo;
 	private boolean first_myLoc = true;
+	private int mPreviousActivity;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -61,6 +62,10 @@ public class PBBChangeMyPosition extends MapActivity {
 	    mMapView = (MapView)findViewById(R.id.map);
 	    
 	    mylocInfo = (TextView) findViewById(R.id.myloc_accuracy);
+	    
+	    Intent p_intent = getIntent();
+		mPreviousActivity = p_intent.getExtras().getInt("from");
+
 	    
 	    /*
 	     * Add Mylocation Overlay
@@ -160,8 +165,13 @@ public class PBBChangeMyPosition extends MapActivity {
 				
 				mapCon.animateTo(geoPoint);
 				
-				mylocInfo.setText("Accuracy : " + mAccuracy + "\u00b1m");
 				
+				if(mPreviousActivity==HelperValues.FROM_FLORACACHE){
+					mylocInfo.setText("Not close enough.  Please click on the map to refine your location");
+					mAccuracy=100;
+				}
+				else 
+					mylocInfo.setText("Accuracy : " + mAccuracy + "\u00b1m");
 				mOver.onLocationChanged(loc);
 				
 			}
@@ -226,8 +236,9 @@ public class PBBChangeMyPosition extends MapActivity {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
-					mPref.setPreferencesString("latitude", Double.toString(mLatitude));
-	   				mPref.setPreferencesString("longitude", Double.toString(mLongitude));
+					mPref.setPreferencesString("latitude", Double.toString(sOverlay.getLatitude()));
+	   				mPref.setPreferencesString("longitude", Double.toString(sOverlay.getLongitude()));
+	   				mPref.setPreferencesString("longitude2", Double.toString(sOverlay.getLongitude()));
 	   				mPref.setPreferencesString("accuracy", Float.toHexString(mAccuracy));
 	   				
 	   				finish();
