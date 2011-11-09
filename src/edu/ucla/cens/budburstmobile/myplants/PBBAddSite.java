@@ -317,7 +317,10 @@ public class PBBAddSite extends Activity{
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				startActivity(new Intent(PBBAddSite.this, PBBChangeMyPosition.class));
+				Intent intentChange = new Intent(PBBAddSite.this, PBBChangeMyPosition.class);
+				intentChange.putExtra("from", HelperValues.FROM_ADD_REG);
+				PBBAddSite.this.startActivity(intentChange);
+			//	startActivity(new Intent(, PBBChangeMyPosition.class));
 			}
 		});
 		
@@ -333,7 +336,7 @@ public class PBBAddSite extends Activity{
 				
 				// TODO Auto-generated method stub
 				if(!fromUpdateGPS) {
-					UpdateGPS.setText("Finish GPS");
+					UpdateGPS.setText("Finish \n GPS");
 					Toast.makeText(PBBAddSite.this, "GPS on", Toast.LENGTH_SHORT).show();
 					fromUpdateGPS = true;
 					// start Service
@@ -345,7 +348,7 @@ public class PBBAddSite extends Activity{
 					registerReceiver(gpsReceiver, inFilter);
 				}
 				else {
-					UpdateGPS.setText("Update GPS");
+					UpdateGPS.setText("Update Location GPS");
 					Toast.makeText(PBBAddSite.this, "GPS off", Toast.LENGTH_SHORT).show();
 					fromUpdateGPS = false;
 	
