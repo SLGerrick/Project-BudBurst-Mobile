@@ -10,9 +10,11 @@ import com.google.android.maps.MyLocationOverlay;
 import edu.ucla.cens.budburstmobile.R;
 import edu.ucla.cens.budburstmobile.database.OneTimeDBHelper;
 import edu.ucla.cens.budburstmobile.database.SyncDBHelper;
+import edu.ucla.cens.budburstmobile.floracaching.FloracacheDetail;
 import edu.ucla.cens.budburstmobile.helper.HelperSharedPreference;
 import edu.ucla.cens.budburstmobile.helper.HelperValues;
 import edu.ucla.cens.budburstmobile.mapview.SitesOverlay;
+import edu.ucla.cens.budburstmobile.utils.PBBItems;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -38,6 +40,7 @@ import android.widget.Toast;
 
 public class PBBChangeMyPosition extends MapActivity {
 
+	private PBBItems pbbItem;
 	private HelperSharedPreference mPref;
 	private static GpsListener gpsListener;
 	private LocationManager locManager = null;
@@ -48,10 +51,14 @@ public class PBBChangeMyPosition extends MapActivity {
 	private SitesOverlay sOverlay = null;
 	private double mLatitude = 0.0;
 	private double mLongitude = 0.0;
+	private double mTargetLatitude = 0.0;
+	private double mTargetLongitude = 0.0;
 	private float mAccuracy = 0;
 	private TextView mylocInfo;
 	private boolean first_myLoc = true;
 	private int mPreviousActivity;
+	private PBBItems pbbFloracache;
+	private int floraImageId;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -63,9 +70,20 @@ public class PBBChangeMyPosition extends MapActivity {
 	    
 	    mylocInfo = (TextView) findViewById(R.id.myloc_accuracy);
 	    
+	   
+		
 	    Intent p_intent = getIntent();
 		mPreviousActivity = p_intent.getExtras().getInt("from");
-
+		
+		 //get items for floracache
+		if(mPreviousActivity==HelperValues.FROM_FLORACACHE){
+		    Bundle bundle = getIntent().getExtras();
+			pbbItem = bundle.getParcelable("pbbItem");
+			mTargetLatitude = pbbItem.getLatitude();
+			mTargetLongitude = pbbItem.getLongitude();
+			floraImageId = p_intent.getExtras().getInt("image_id");
+			pbbFloracache = pbbItem;
+		}
 	    
 	    /*
 	     * Add Mylocation Overlay
@@ -216,11 +234,10 @@ public class PBBChangeMyPosition extends MapActivity {
 	   		.setTitle(getString(R.string.Message_Save_GPS))
 	   		.setPositiveButton(getString(R.string.Button_GPS), new DialogInterface.OnClickListener() {
 	   			public void onClick(DialogInterface dialog, int whichButton) {
-	   				
 	   				mPref.setPreferencesString("latitude", Double.toString(mLatitude));
 	   				mPref.setPreferencesString("longitude", Double.toString(mLongitude));
 	   				mPref.setPreferencesString("accuracy", Float.toHexString(mAccuracy));
-	   				
+	   				mPref.setPreferencesBoolean("changedLoc", true);
 	   				finish();
 	   			}
 	   		})
@@ -228,6 +245,7 @@ public class PBBChangeMyPosition extends MapActivity {
 	   			public void onClick(DialogInterface dialog, int whichButton) {
 	   				locManager.removeUpdates(gpsListener);
 	   				mOver.disableMyLocation();		
+	   				mPref.setPreferencesBoolean("changedLoc", true);
 	   				finish();
 	   			}
 	   		})
@@ -236,10 +254,59 @@ public class PBBChangeMyPosition extends MapActivity {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
-					mPref.setPreferencesString("latitude", Double.toString(sOverlay.getLatitude()));
-	   				mPref.setPreferencesString("longitude", Double.toString(sOverlay.getLongitude()));
-	   				mPref.setPreferencesString("longitude2", Double.toString(sOverlay.getLongitude()));
-	   				mPref.setPreferencesString("accuracy", Float.toHexString(mAccuracy));
+					if(mPreviousActivity==HelperValues.FROM_FLORACACHE){
+						double mapLongitude = sOverlay.getLongitude();
+						double mapLatitude = sOverlay.getLatitude();
+						
+						float dist[] = new float[1];
+						dist[0]=-1;
+						Location.distanceBetween(mapLatitude, mapLongitude, mTargetLatitude, mTargetLongitude, dist);
+						float distLocs[] = new float[1];
+						Location.distanceBetween(mapLatitude, mapLongitude, mTargetLatitude, mTargetLongitude, dist);
+						Location.distanceBetween(mapLatitude, mapLongitude, mLatitude, mLongitude, distLocs);
+						double mDistance = dist[0];
+						double mapToGpsDistance = distLocs[0];
+						
+						if(mDistance < 15.0 && mDistance>=0 && mapToGpsDistance < 33.0) {
+							Toast.makeText(PBBChangeMyPosition.this, "close enough! Dist: " + String.format("%5.2f", dist[0] * 3.2808399) + "ft", Toast.LENGTH_SHORT).show();	
+							Intent intent2 = new Intent(PBBChangeMyPosition.this, FloracacheDetail.class);
+							PBBItems pbbItem = new PBBItems();							
+							intent2.putExtra("pbbItem", pbbFloracache);
+							intent2.putExtra("image_id", floraImageId);
+							PBBChangeMyPosition.this.startActivity(intent2);			
+						
+						}
+						
+						else{
+							if(mapToGpsDistance >= 33.0){
+								Toast.makeText(PBBChangeMyPosition.this, 
+										"Marker location not in range", 
+										Toast.LENGTH_SHORT).show();	
+							}
+							else if(mDistance >= 15.0){
+							Toast.makeText(PBBChangeMyPosition.this, 
+									"Not close enough...", 
+									Toast.LENGTH_SHORT).show();	
+							}
+						}
+						
+						
+						
+						
+						
+						
+						
+						
+						
+				//		mPref.setPreferencesString("latitude2", Double.toString(sOverlay.getLatitude()));
+		   		//		mPref.setPreferencesString("longitude2", Double.toString(sOverlay.getLongitude()));
+		   		//		mPref.setPreferencesBoolean("changedLoc", true);
+					}
+					else{
+			//			mPref.setPreferencesString("latitude", Double.toString(mLatitude));
+		   	//			mPref.setPreferencesString("longitude", Double.toString(mLongitude));
+					}
+					mPref.setPreferencesString("accuracy", Float.toHexString(mAccuracy));
 	   				
 	   				finish();
 				}
