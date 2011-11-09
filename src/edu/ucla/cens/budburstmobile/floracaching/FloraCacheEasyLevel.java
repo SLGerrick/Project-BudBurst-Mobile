@@ -148,7 +148,7 @@ public class FloraCacheEasyLevel extends MapActivity {
 				
 				// convert points into GeoPoint
 			    GeoPoint gPoint = getPoint(mLatitude, mLongitude);
-
+			    
 			    // center the map
 			    if(mFirstGps) {
 			    	mMapController.setCenter(gPoint);
@@ -190,6 +190,7 @@ public class FloraCacheEasyLevel extends MapActivity {
 		// Add mylocation overlay
 		mMyOverLay = new MyLocOverlay(FloraCacheEasyLevel.this, mMapView);
 		mMyOverLay.enableMyLocation();
+//		mMyOverLay.
 		mMyOverLay.enableCompass();
 	    
 		mFirstGps = true;
@@ -288,10 +289,12 @@ public class FloraCacheEasyLevel extends MapActivity {
 			OneTimeDBHelper oDBH = new OneTimeDBHelper(this);
 			mPlantList = oDBH.getFloracacheLists(FloraCacheEasyLevel.this, HelperValues.FLORACACHE_EASY, mGroupID, mLatitude, mLongitude);
 		
-			mMapView.getOverlays().add(new FloraCacheOverlay(mMapView, mMarker, mPlantList));
-			mMapView.getOverlays().add(mMyOverLay);
-			
 			GeoPoint gPoint = new GeoPoint((int)(mLatitude * 1000000), (int)(mLongitude * 1000000));
+			
+			mMapView.getOverlays().add(mMyOverLay);
+			mMapView.getOverlays().add(new FloraCacheOverlay(mMapView, mMarker, mPlantList));
+			
+						
 			
 			mMapController.setCenter(gPoint);
 			mMapController.setZoom(18);
@@ -305,10 +308,11 @@ public class FloraCacheEasyLevel extends MapActivity {
 		mMapView.getOverlays().clear();
 		mMapView.invalidate();
 		
+		GeoPoint gPoint = new GeoPoint((int)(mLatitude * 1000000), (int)(mLongitude * 1000000));
+		
 		mMapView.getOverlays().add(new FloraCacheOverlay(mMapView, mMarker, mPlantList));
 		mMapView.getOverlays().add(mMyOverLay);
-		
-		GeoPoint gPoint = new GeoPoint((int)(mLatitude * 1000000), (int)(mLongitude * 1000000));
+				
 		
 		mMapController.setCenter(gPoint);
 	}
