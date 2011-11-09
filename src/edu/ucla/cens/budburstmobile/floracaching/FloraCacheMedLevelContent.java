@@ -28,6 +28,7 @@ import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -263,15 +264,52 @@ public class FloraCacheMedLevelContent extends Activity {
 				else {
 					
 					//TODO change radius to what Eric wants
-					if(mDistance < 100.0) {
-						Intent intentChange = new Intent(FloraCacheMedLevelContent.this, PBBChangeMyPosition.class);
+					if(mDistance < 33.0) {
+						
+						new AlertDialog.Builder( FloraCacheMedLevelContent.this )
+				   		.setTitle("You are not close enough. Would you like to refine your location using a touch-map?")
+				   		.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				   			public void onClick(DialogInterface dialog, int whichButton) {
+				   				//refine location with map
+				   				Intent intentChange = new Intent(FloraCacheMedLevelContent.this, PBBChangeMyPosition.class);
+								intentChange.putExtra("from", HelperValues.FROM_FLORACACHE);
+								intentChange.putExtra("targetLongitude", mTargetLongitude);
+								intentChange.putExtra("targetLatitude", mTargetLatitude);
+								PBBItems pbbItems = new PBBItems();
+								pbbItems.setCommonName(pbbItem.getCommonName());
+								pbbItems.setScienceName(pbbItem.getScienceName());
+								pbbItems.setSpeciesID(pbbItem.getSpeciesID());
+								pbbItems.setProtocolID(pbbItem.getProtocolID());
+								pbbItems.setCategory(pbbItem.getCategory());
+								pbbItems.setFloracacheID(pbbItem.getFloracacheID());
+								pbbItems.setLatitude(pbbItem.getLatitude());
+								pbbItems.setLongitude(pbbItem.getLongitude());
+								pbbItems.setIsFloracache(HelperValues.IS_FLORACACHE_YES);
+								pbbItems.setSpeciesImageID(mImageID);
+								intentChange.putExtra("pbbItem", pbbItems);
+								intentChange.putExtra("image_id", mImageID);
+								FloraCacheMedLevelContent.this.startActivity(intentChange);
+				   				
+				   			}
+				   		})
+				   		.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				   			public void onClick(DialogInterface dialog, int whichButton) {
+				   				//don't refine location				   				
+				   				
+				   			}
+				   		}).show();
+						
+						
+						
+						
+				/*		Intent intentChange = new Intent(FloraCacheMedLevelContent.this, PBBChangeMyPosition.class);
 						intentChange.putExtra("from", HelperValues.FROM_FLORACACHE);
 						startActivity(intentChange);
 						
 						double mapLatitude =  Double.parseDouble(mPref.getPreferenceString("latitude2", "0.0"));
 						double mapLongitude = Double.parseDouble(mPref.getPreferenceString("longitude2", "0.0"));
-						mLatitude = mapLatitude;
-						mLongitude = mapLongitude;
+			//			mLatitude = mapLatitude;
+			//			mLongitude = mapLongitude;
 						//mAccuracy = mPref.getPreferencesString("accuracy", Float.toHexString(mAccuracy));
 						
 						float dist[] = new float[1];
@@ -308,8 +346,9 @@ public class FloraCacheMedLevelContent extends Activity {
 						}
 						
 						
-						
+						*/
 					}
+			
 					else{
 						Toast.makeText(FloraCacheMedLevelContent.this, 
 								"Not close enough.", 
