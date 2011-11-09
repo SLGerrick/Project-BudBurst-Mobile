@@ -16,4 +16,41 @@
 		android:layout_height="fill_parent"
 		android:apiKey="@string/mapKey"
 		android:clickable="true" />
+		
+			
+	
+	<LinearLayout
+		android:orientation="horizontal"
+		android:id="@+id/button_row"
+		android:layout_width="fill_parent"
+		android:layout_height="70sp"
+		android:visibility="visible"
+		android:layout_alignParentBottom="true"	
+		>
+		<LinearLayout
+			android:orientation="horizontal"
+			android:layout_weight="1"
+			android:layout_height="70sp"
+			>
+				<Button
+					android:layout_height="70sp"
+					android:text="Use Marker"
+					android:layout_width="fill_parent"
+					android:id="@+id/mapBtn"
+					/>
+		</LinearLayout>
+		<LinearLayout
+			android:orientation="horizontal"
+			android:layout_weight="1"
+			android:layout_height="70sp"
+			>
+				<Button
+				android:layout_height="70sp"
+				android:layout_width="fill_parent"
+				android:text="Use GPS"
+				android:id="@+id/gpsBtn"
+				/>
+		</LinearLayout>
+		
+	</LinearLayout>
 </RelativeLayout>
