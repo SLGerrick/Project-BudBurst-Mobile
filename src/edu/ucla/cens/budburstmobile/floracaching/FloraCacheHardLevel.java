@@ -1,404 +1,200 @@
-package edu.ucla.cens.budburstmobile.floracaching;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-
-
-import com.google.android.maps.GeoPoint;
-
-import edu.ucla.cens.budburstmobile.PBBHelpPage;
-import edu.ucla.cens.budburstmobile.PBBMainPage;
-import edu.ucla.cens.budburstmobile.PBBSync;
-import edu.ucla.cens.budburstmobile.R;
-import edu.ucla.cens.budburstmobile.adapter.MyListAdapterFloracache;
-import edu.ucla.cens.budburstmobile.database.OneTimeDBHelper;
-import edu.ucla.cens.budburstmobile.helper.HelperGpsHandler;
-import edu.ucla.cens.budburstmobile.helper.HelperListItem;
-import edu.ucla.cens.budburstmobile.helper.HelperPlantItem;
-import edu.ucla.cens.budburstmobile.helper.HelperSettings;
-import edu.ucla.cens.budburstmobile.helper.HelperSharedPreference;
-import edu.ucla.cens.budburstmobile.helper.HelperValues;
-import edu.ucla.cens.budburstmobile.myplants.PBBChangeMyPosition;
-import edu.ucla.cens.budburstmobile.onetime.OneTimePhenophase;
-import edu.ucla.cens.budburstmobile.utils.PBBItems;
-import edu.ucla.cens.budburstmobile.utils.QuickCapture;
-
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.ListActivity;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
-import android.location.Location;
-import android.location.LocationManager;
-import android.os.Bundle;
-import android.os.IBinder;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-public class FloraCacheHardLevel extends ListActivity {
-	
-	private HelperSharedPreference mPref;
-	private LocationManager mLocManager = null;
-	private HelperGpsHandler gpsHandler;
-	private boolean mIsBound;
-	private boolean mFirstTime = true;
-	private double mLatitude 		= 0.0;
-	private double mLongitude 		= 0.0;
-	private double gpsLatitude 		= 0.0;
-	private double gpsLongitude 	= 0.0;
-	private int mNumSpecies;
-	private int mGroupID;
-	private int mIndex;
-	private int mImageID;
-	
-	private static int MAX_NUM_SHOWN = 20;
-	
-	private EditText mLatTxt;
-	private EditText mLonTxt;
-	private EditText mInfoTxt;
-	
-	private MyListAdapterFloracache mListapdater;
-	private ArrayList<HelperPlantItem> mListArr;
-	private HelperListItem mItem;
-	
-	private Button mRefreshListBtn;
-	
-	private ArrayList<FloracacheItem> mPlantList = new ArrayList<FloracacheItem>();
-	
-	private ServiceConnection mConnection = new ServiceConnection() {
-
-		public void onServiceConnected(ComponentName className, IBinder binder) {
-			gpsHandler = ((HelperGpsHandler.GpsBinder) binder).getService();
-		}
-
-		public void onServiceDisconnected(ComponentName className) {
-			gpsHandler = null;
-		}
-	};
-	
-	private void doBindService() {
-		
-		Log.i("K", "BindService");
-		
-		bindService(new Intent(FloraCacheHardLevel.this, HelperGpsHandler.class), mConnection,
-				Context.BIND_AUTO_CREATE);
-		mIsBound = true;
-	}
-	
-	private void doUnbindService() {
-		
-		Log.i("K", "UnBindService");
-		
-		if(mIsBound) {
-			if(mConnection != null) {
-				
-			}
-		
-			unbindService(mConnection);
-			mIsBound = false;
-		}
-	}
-
-	private BroadcastReceiver gpsReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			// TODO Auto-generated method stub
-			Bundle extras = intent.getExtras();
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
+  <LinearLayout
+  	android:layout_width="fill_parent"
+  	android:layout_height="fill_parent"
+  	android:orientation="vertical"
+  	android:weightSum="1">
+  <ScrollView
+  	android:layout_width="fill_parent"
+  	android:layout_height="fill_parent"
+  	android:id="@+id/upper"
+  	android:layout_weight="0.9"
+  >
+  	<LinearLayout
+  		android:layout_width="fill_parent"
+	  	android:layout_height="fill_parent"
+	  	android:orientation="vertical"
+  	>
+  	
+  	<!-- This layout is only for local budburst plant -->
+  	
+  	  <LinearLayout
+  	  	android:layout_width="fill_parent"
+  	  	android:layout_height="wrap_content"
+  	  	android:id="@+id/upper_invisible"
+  	  	android:visibility="gone"
+  	  	android:orientation="vertical"
+  	  	android:layout_margin="5dp"
+  	  >
+  	  	<LinearLayout
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="15dp"
+			android:orientation="horizontal"
+			>
+			<ImageView 
+				android:scaleType="fitCenter"
+				android:paddingLeft="5dp"
+				android:paddingRight="5dp"
+				android:layout_width="90dp" 
+				android:layout_height="90dp" 
+				android:id="@+id/species_image" 
+				android:adjustViewBounds="true"
+				/>		
+			<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="10dp"
+				android:orientation="vertical"
+			>
+				<TextView
+					android:id="@+id/science_name2"
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content"
+					android:textSize="19sp" 
+					android:textColor="@drawable/black" 
+					android:layout_gravity="center"
+					android:textStyle="italic|bold" 
+					android:layout_marginTop="10dp"
+					/>			
 			
-			if(extras.getBoolean("signal")) {
-				mLatitude = extras.getDouble("latitude");
-				mLongitude = extras.getDouble("longitude");
-				gpsLatitude = mLatitude;
-				gpsLongitude = mLongitude;
-				
-				mRefreshListBtn.setEnabled(true);
-				
-				TextView infoTxt = (TextView)findViewById(R.id.gps_info);
-				infoTxt.setVisibility(View.GONE);
-				
-				Log.i("K", "mLatitude : " + mLatitude + " mLongitude : " + mLongitude);
-				
-				if(mFirstTime) {
-					mFirstTime = false;
-					getFloraLists();
-				}
-				else {
-					//updateInfo();
-				}
-				
-			}
-			// if Gps signal is bad
-			else {
-				//Toast.makeText(FloraCacheHardLevel.this, getString(R.string.Low_GPS_Signal), Toast.LENGTH_SHORT).show();
-			}
-		}	
-	};
-	
-	private GeoPoint getPoint(double lat, double lon) {
-		return(new GeoPoint((int)(lat*1000000.0), (int)(lon*1000000.0)));
-	}
-	
-	/** Called when the activity is first created. */
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-	    super.onCreate(savedInstanceState);
-	    
-	    Intent gIntent = getIntent();
-	    mGroupID = gIntent.getExtras().getInt("group_id");
-	    
-	    //needed for map popup
-	    mPref = new HelperSharedPreference(this);
-	    
-	    mListArr = new ArrayList<HelperPlantItem>();
-	    
-	    setTitleBar();
-	    checkGPS();
-	    
-	    mRefreshListBtn = (Button)findViewById(R.id.refresh_lists);
-	    mRefreshListBtn.setEnabled(false);
-	    mRefreshListBtn.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				updateFloraLists();
-			}
-		});
-	    
-	    // TODO Auto-generated method stub
-	}
-	
-	private void getFloraLists() {
-		HelperSharedPreference hPref = new HelperSharedPreference(this);
-		if(!hPref.getPreferenceBoolean("floracache")) {
-			Toast.makeText(FloraCacheHardLevel.this, "To download the list, Go 'Settings' page", Toast.LENGTH_SHORT).show();
-		}
-		else {
-			OneTimeDBHelper oDBH = new OneTimeDBHelper(this);
-			mPlantList = oDBH.getFloracacheLists(FloraCacheHardLevel.this, HelperValues.FLORACACHE_HARD, mGroupID, mLatitude, mLongitude);
-			
-			mListapdater = new MyListAdapterFloracache(this, R.layout.floracache_item ,mPlantList);
-			ListView MyList = getListView();
-			MyList.setAdapter(mListapdater);	
-		}
-	}
-	
-	private void updateFloraLists() {
-
-		OneTimeDBHelper oDBH = new OneTimeDBHelper(this);
-		mPlantList = oDBH.getFloracacheLists(FloraCacheHardLevel.this, HelperValues.FLORACACHE_HARD, mGroupID, mLatitude, mLongitude);
+				<TextView
+					android:id="@+id/common_name2"
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content"
+					android:textSize="17sp" 
+					android:textColor="@drawable/black" 
+					android:layout_gravity="center"
+					android:textStyle="italic|bold" 
+					/>		
+			</LinearLayout>
+		</LinearLayout>
+		<TextView
+			android:layout_marginLeft="5dp"
+			android:layout_marginRight="5dp"
+			android:layout_marginBottom="20dp" 
+			android:layout_marginTop="20dp"
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content"
+			android:textColor="@drawable/black" 
+			android:layout_gravity="left"
+			android:text="Notes"
+			android:textSize="17sp"
+			android:id="@+id/text"
+		/>
 		
-		mListapdater = new MyListAdapterFloracache(this, R.layout.floracache_item ,mPlantList);
-		ListView MyList = getListView();
-		MyList.setAdapter(mListapdater);
-	}
-	
-	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id){
-		
-		mIndex = position;
-		
-		updateFloraLists();
-		
-		if(mPlantList.get(mIndex).getUserSpeciesCategoryID() == HelperValues.LOCAL_WHATSINVASIVE_LIST 
-				|| mPlantList.get(mIndex).getUserSpeciesCategoryID() == HelperValues.LOCAL_POISONOUS_LIST
-				|| mPlantList.get(mIndex).getUserSpeciesCategoryID() == HelperValues.LOCAL_THREATENED_ENDANGERED_LIST) {
-			OneTimeDBHelper oDBH = new OneTimeDBHelper(FloraCacheHardLevel.this);
-			mImageID = oDBH.getImageID(FloraCacheHardLevel.this, mPlantList.get(mIndex).getScienceName(), mListArr.get(mIndex).getCategory());
-		}
-		
-		if(mPlantList.get(mIndex).getDistance() < 15.0) {
-			
-			if(mPlantList.get(mIndex).getUserSpeciesCategoryID() != HelperValues.LOCAL_BUDBURST_LIST) {
-				OneTimeDBHelper oDBH = new OneTimeDBHelper(FloraCacheHardLevel.this);
-				mImageID = oDBH.getImageID(FloraCacheHardLevel.this, mPlantList.get(mIndex).getScienceName(), mPlantList.get(mIndex).getUserSpeciesCategoryID());
-			}
-			
-			Intent intent = new Intent(FloraCacheHardLevel.this, FloracacheDetail.class);
-			PBBItems pbbItem = new PBBItems();
-			pbbItem.setCommonName(mPlantList.get(mIndex).getCommonName());
-			pbbItem.setScienceName(mPlantList.get(mIndex).getScienceName());
-			pbbItem.setSpeciesID(mPlantList.get(mIndex).getUserSpeciesID());
-			pbbItem.setProtocolID(mPlantList.get(mIndex).getProtocolID());
-			pbbItem.setCategory(mPlantList.get(mIndex).getUserSpeciesCategoryID());
-			pbbItem.setIsFloracache(HelperValues.IS_FLORACACHE_YES); // set floracacheID to easy value
-			pbbItem.setFloracacheID(mPlantList.get(mIndex).getFloracacheID());
-			pbbItem.setLatitude(mPlantList.get(mIndex).getLatitude());
-			pbbItem.setLongitude(mPlantList.get(mIndex).getLongitude());
-			
-			intent.putExtra("pbbItem", pbbItem);
-			intent.putExtra("image_id", mImageID);
-			intent.putExtra("from", HelperValues.FROM_LOCAL_PLANT_LISTS);
-			
-			startActivity(intent);
-		}
-		//map popup
-		else {
-			//TODO change radius to what Eric wants
-			if(mPlantList.get(mIndex).getDistance() < 33.0) {
-				//pop-up dialog
-				new AlertDialog.Builder( FloraCacheHardLevel.this )
-		   		.setTitle("You are not close enough. Would you like to refine your location using a touch-map?")
-		   		.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-		   			public void onClick(DialogInterface dialog, int whichButton) {
-		   			//refine location using the map
-		   				Intent intentChange = new Intent(FloraCacheHardLevel.this, PBBChangeMyPosition.class);
-						intentChange.putExtra("from", HelperValues.FROM_FLORACACHE);
-						PBBItems pbbItems = new PBBItems();
-						pbbItems.setCommonName(mPlantList.get(mIndex).getCommonName());
-						pbbItems.setScienceName(mPlantList.get(mIndex).getScienceName());
-						pbbItems.setSpeciesID(mPlantList.get(mIndex).getUserSpeciesID());
-						pbbItems.setProtocolID(mPlantList.get(mIndex).getProtocolID());
-						pbbItems.setCategory(mPlantList.get(mIndex).getUserSpeciesCategoryID());
-						pbbItems.setFloracacheID(mPlantList.get(mIndex).getFloracacheID());
-						pbbItems.setLatitude(mPlantList.get(mIndex).getLatitude());
-						pbbItems.setLongitude(mPlantList.get(mIndex).getLongitude());
-						pbbItems.setIsFloracache(HelperValues.IS_FLORACACHE_YES);
-						pbbItems.setSpeciesImageID(mImageID);
-						intentChange.putExtra("pbbItem", pbbItems);
-						intentChange.putExtra("image_id", mImageID);
-
-						startActivity(intentChange);
-		   			}
-		   		})
-				.setNegativeButton("No", new DialogInterface.OnClickListener() {
-		   			public void onClick(DialogInterface dialog, int whichButton) {
-		   				//don't refine location				   				
-		   				
-		   			}
-		   		}).show();
-	/*			
-				double mapLatitude =  Double.parseDouble(mPref.getPreferenceString("latitude2", "0.0"));
-				double mapLongitude = Double.parseDouble(mPref.getPreferenceString("longitude2", "0.0"));
-		//		mLatitude = mapLatitude;
-		//		mLongitude = mapLongitude;
-				//mAccuracy = mPref.getPreferencesString("accuracy", Float.toHexString(mAccuracy));
-				
-				float dist[] = new float[1];
-				float distLocs[] = new float[1];
-				double mTargetLatitude = mPlantList.get(mIndex).getLatitude();
-				double mTargetLongitude = mPlantList.get(mIndex).getLongitude();
-				Location.distanceBetween(mapLatitude, mapLongitude, mTargetLatitude, mTargetLongitude, dist);
-				Location.distanceBetween(mapLatitude, mapLongitude, gpsLatitude, gpsLongitude, distLocs);
-				double mDistance = dist[0];
-				double mapToGpsDistance = distLocs[0];
-				if(mDistance < 15.0 && mapToGpsDistance < 100) {
-					
-					Intent intent2 = new Intent(FloraCacheHardLevel.this, FloracacheDetail.class);
-					PBBItems pbbItem = new PBBItems();
-					pbbItems.setCommonName(mPlantList.get(mIndex).getCommonName());
-					pbbItems.setScienceName(mPlantList.get(mIndex).getScienceName());
-					pbbItems.setSpeciesID(mPlantList.get(mIndex).getUserSpeciesID());
-					pbbItems.setProtocolID(mPlantList.get(mIndex).getProtocolID());
-					pbbItems.setCategory(mPlantList.get(mIndex).getUserSpeciesCategoryID());
-					pbbItems.setFloracacheID(mPlantList.get(mIndex).getFloracacheID());
-					pbbItems.setLatitude(mPlantList.get(mIndex).getLatitude());
-					pbbItems.setLongitude(mPlantList.get(mIndex).getLongitude());
-					pbbItems.setIsFloracache(HelperValues.IS_FLORACACHE_YES);
-					pbbItems.setSpeciesImageID(mImageID);
-					
-					intent2.putExtra("pbbItem", pbbItems);
-					intent2.putExtra("image_id", mImageID);
-					startActivity(intent2);				
-				}
-				
-				else{
-					Toast.makeText(FloraCacheHardLevel.this, 
-							"Not close enough."+mDistance, 
-							Toast.LENGTH_SHORT).show();	
-				}
-				*/
-				
-			}			
-		
-		else {
-			Toast.makeText(FloraCacheHardLevel.this, "Not close enough. Dist: " + String.format("%5.2f", mPlantList.get(mIndex).getDistance() * 3.2808399) + "ft", Toast.LENGTH_SHORT).show();	
-			}
-		}
-	}
-	
-	private void checkGPS() {
-		mLocManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		
-		Location lastLoc = mLocManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		if(lastLoc != null) {
-			mLatitude = lastLoc.getLatitude();
-			mLongitude = lastLoc.getLongitude();			
-		}
-		
-		IntentFilter inFilter = new IntentFilter(HelperGpsHandler.GPSHANDLERFILTER);
-		registerReceiver(gpsReceiver, inFilter);
-		
-		doBindService();
-	}
-	
-	
-	public void setTitleBar() {
-		requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
-		setContentView(R.layout.floracachehardlevel);
-		getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.pbb_title);
-		
-		ViewGroup v = (ViewGroup) findViewById(R.id.title_bar).getParent().getParent();
-		v = (ViewGroup)v.getChildAt(0);
-		v.setPadding(0, 0, 0, 0);
-
-		TextView myTitleText = (TextView) findViewById(R.id.my_title);
-		myTitleText.setText(" " + getString(R.string.Floracache_Game) + " Hard Level");
-	}
-	
-	@Override
-	public void onDestroy() {
-		// when user finish this activity, turn off the gps
-		// if there's a overlay, should call disableCompass() explicitly
-		doUnbindService();
-		if(gpsReceiver != null) {
-			unregisterReceiver(gpsReceiver);
-		}
-		super.onDestroy();
-	}
-	
-	
-	/*
-	 * Menu option(non-Javadoc)
-	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
-	 */
-	public boolean onCreateOptionsMenu(Menu menu){
-		super.onCreateOptionsMenu(menu);
-		
-		menu.add(0, 1, 0, getString(R.string.Floracache_Hard_Refresh)).setIcon(R.drawable.ic_menu_refresh);
-			
-		return true;
-	}
-	
-	/*
-	 * Menu option selection handling(non-Javadoc)
-	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
-	 */
-	public boolean onOptionsItemSelected(MenuItem item){
-
-		Intent intent;
-		switch(item.getItemId()){
-			case 1:
-				Toast.makeText(FloraCacheHardLevel.this, getString(R.string.Map_Getting_GPS_Signal), Toast.LENGTH_SHORT).show();
-				doBindService();
-				return true;					
-		}
-		return false;
-	}
-}
+		<Button
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="More info from USDA"
+			android:id="@+id/more_info"
+			android:textSize="18sp"
+			android:layout_marginBottom="10dp"
+		/>
+  	  
+  	  </LinearLayout>
+  	  
+  <!-- Done : Only for local budburst -->
+  
+  
+	  <LinearLayout
+	  	android:layout_width="fill_parent"
+	  	android:layout_height="wrap_content"
+	  	android:orientation="vertical"
+	  	android:gravity="center"
+	  	android:layout_below="@+id/upper_invisible"
+	  	android:id="@+id/lower_info"
+	  >
+	    <ProgressBar
+	  		android:gravity="center"
+	  		android:layout_width="wrap_content"
+	  		android:layout_height="wrap_content"
+	  		android:id="@+id/progressbar"
+	  		android:layout_marginTop="30dp"
+	  		android:layout_marginBottom="30dp"
+	  		android:layout_marginLeft="3dp"
+	  		android:layout_marginRight="3dp"
+	  	/>
+	  	<RelativeLayout
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="wrap_content"
+	  		android:layout_marginTop="10dp"
+	  		android:gravity="center"
+	  	>
+		  	<ImageView
+		  		android:gravity="center"
+		  		android:layout_width="fill_parent"
+		  		android:layout_height="wrap_content"
+		  		android:id="@+id/webimage"
+		  		android:layout_marginTop="5dp"
+		  		android:layout_marginLeft="3dp"
+		  		android:layout_marginRight="3dp"
+		  		android:scaleType="centerCrop"
+		  	/>
+	  	</RelativeLayout>
+	  	<TextView
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="wrap_content"
+	  		android:id="@+id/common_name"
+	  		android:layout_gravity="center"
+	  		android:layout_marginLeft="8dp"
+	  		android:layout_marginTop="5dp"
+	  		android:textSize="18sp"
+	  		android:textStyle="bold|italic"
+	  	/>
+	  	<TextView
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="wrap_content"
+	  		android:id="@+id/science_name"
+	  		android:layout_gravity="center"
+	  		android:layout_marginLeft="8dp"
+	  		android:textSize="17sp"
+	  		android:textStyle="bold|italic"
+	  	/>
+		<TextView
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="wrap_content"
+	  		android:id="@+id/credit"
+	  		android:layout_gravity="center"
+	  		android:layout_marginLeft="8dp"
+	  		android:textSize="17sp"
+	  	/>
+	  	
+	  </LinearLayout>
+	</LinearLayout>
+  </ScrollView>
+  <LinearLayout
+  	android:id="@+id/lower"
+  	android:layout_below="@+id/upper"
+	android:layout_width="fill_parent"
+	android:layout_height="60dp"
+	android:layout_weight="0.1"
+	android:gravity="center"
+	android:visibility="gone"
+	android:weightSum="1"
+	android:orientation="horizontal"
+	android:background="@color/darkgray">
+	  		
+	<Button
+	  	android:layout_width="fill_parent"
+	  	android:layout_height="wrap_content"
+	  	android:layout_weight="0.5"
+	  	android:id="@+id/to_myplant"
+	  	android:textSize="13sp"
+	  	android:text="@string/Menu_addPlant"
+	  />
+	<Button
+	  	android:layout_width="fill_parent"
+	  	android:layout_height="wrap_content"
+	  	android:layout_weight="0.5"
+	  	android:id="@+id/to_shared_plant"
+	  	android:textSize="13sp"
+	  	android:text="@string/Menu_addQCPlant"
+	  />
+  </LinearLayout>
+  </LinearLayout>
+</RelativeLayout>
