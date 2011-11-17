@@ -91,9 +91,9 @@ public class PBBPlantList extends ListActivity {
 	
 	
 	//button list menu
-	private ImageButton addRegBtn = null;
-	private ImageButton addSingleBtn = null;
-	private ImageButton mapBtn = null;
+	private ImageButton addReg = null;
+	private ImageButton addSingle = null;
+	private ImageButton map = null;
 	
 	//MENU contents
 	final private int MENU_ADD_PLANT = 1;
@@ -394,7 +394,8 @@ public class PBBPlantList extends ListActivity {
 							synced_species = SyncDBHelper.SYNCED_YES;
 						}
 					}
-
+					if(cursor2.getInt(4) == SyncDBHelper.SYNCED_NO)
+						synced_species = SyncDBHelper.SYNCED_NO;
 				
 					// get total_number_of phenophases from species
 					String total_pheno = "SELECT Phenophase_ID " +
@@ -450,8 +451,8 @@ public class PBBPlantList extends ListActivity {
 			
 			//buton menu list
 			//add a regular observation
-			addRegBtn = (ImageButton)findViewById(R.id.add_reg);
-			addRegBtn.setOnClickListener(new View.OnClickListener(){
+			addReg = (ImageButton)findViewById(R.id.add_reg);
+			addReg.setOnClickListener(new View.OnClickListener(){
 
 				@Override
 				public void onClick(View v) {
@@ -459,15 +460,15 @@ public class PBBPlantList extends ListActivity {
 					Intent intent = new Intent(PBBPlantList.this, OneTimeMainPage.class);
 					pbbItem = new PBBItems();
 					intent.putExtra("pbbItem", pbbItem);
-					intent.putExtra("from", HelperValues.FROM_PLANT_LIST);
+					intent.putExtra("from", HelperValues.FROM_ADD_REG);
 					startActivity(intent);
 
 				}		    	
 		    });
 			
 			//add a single observation
-			addSingleBtn = (ImageButton)findViewById(R.id.add_single);
-			addSingleBtn.setOnClickListener(new View.OnClickListener(){
+			addSingle = (ImageButton)findViewById(R.id.add_single);
+			addSingle.setOnClickListener(new View.OnClickListener(){
 
 				@Override
 				public void onClick(View v) {
@@ -516,8 +517,8 @@ public class PBBPlantList extends ListActivity {
 		    });
 			
 			//go to map page
-			mapBtn = (ImageButton)findViewById(R.id.map);
-			mapBtn.setOnClickListener(new View.OnClickListener(){
+			map = (ImageButton)findViewById(R.id.map);
+			map.setOnClickListener(new View.OnClickListener(){
 
 				@Override
 				public void onClick(View v) {
@@ -659,7 +660,7 @@ public class PBBPlantList extends ListActivity {
 			pi.setSynced(synced);
 			pi.setCategory(category);
 			pi.setImageID(imageID);
-			pi.setIsFloracache(isFloracache);
+			pi.setIsFloracache(0);
 			pi.setFloracacheID(floracacheID);
 			
 			
@@ -977,9 +978,9 @@ public class PBBPlantList extends ListActivity {
 		mDialog.show();
 		
 		et1 = (EditText)mDialog.findViewById(R.id.custom_common_name);
-		Button doneBtn = (Button)mDialog.findViewById(R.id.custom_done);
+		Button done = (Button)mDialog.findViewById(R.id.custom_done);
 		
-		doneBtn.setOnClickListener(new View.OnClickListener(){
+		done.setOnClickListener(new View.OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
@@ -1234,9 +1235,9 @@ public class PBBPlantList extends ListActivity {
 						icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.unsynced));
 					}
 					
-					//if(arSrc.get(position).getIsFloracache() != 0) {
-					//	icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.is_floracache));
-					//}
+					if(arSrc.get(position).getIsFloracache() != 0) {
+						icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.is_floracache));
+					}
 					break;
 				case HelperValues.LOCAL_POISONOUS_LIST:
 					Log.i("K", "PBBPlantList(Picture, ImageID) : " + arSrc.get(position).getPicture() 
@@ -1249,9 +1250,9 @@ public class PBBPlantList extends ListActivity {
 						icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.unsynced));
 					}
 					
-					//if(arSrc.get(position).getIsFloracache() != 0) {
-					//	icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.is_floracache));
-					//}
+					if(arSrc.get(position).getIsFloracache() != 0) {
+						icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.is_floracache));
+					}
 					break;
 				case HelperValues.LOCAL_THREATENED_ENDANGERED_LIST:
 					Log.i("K", "PBBPlantList(Picture, ImageID) : " + arSrc.get(position).getPicture() 
@@ -1264,9 +1265,9 @@ public class PBBPlantList extends ListActivity {
 						icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.unsynced));
 					}
 					
-					//if(arSrc.get(position).getIsFloracache() != 0) {
-					//	icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.is_floracache));
-					//}
+					if(arSrc.get(position).getIsFloracache() != 0) {
+						icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.is_floracache));
+					}
 					break;
 				default:
 					// Call images from the TREE_PATH
@@ -1290,9 +1291,9 @@ public class PBBPlantList extends ListActivity {
 						icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.unsynced));
 					}
 					
-					//if(arSrc.get(position).getIsFloracache() != 0) {
-					//	icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.is_floracache));
-					//}
+					if(arSrc.get(position).getIsFloracache() != 0) {
+						icon = mHelper.overlay(icon, BitmapFactory.decodeResource(getResources(), R.drawable.is_floracache));
+					}
 					break;
 				}				
 		
