@@ -1,5 +1,7 @@
 package edu.ucla.cens.budburstmobile.onetime;
 
+//List for Local List Plants
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -72,6 +74,7 @@ import edu.ucla.cens.budburstmobile.helper.HelperJSONParser;
 import edu.ucla.cens.budburstmobile.helper.HelperLazyAdapter;
 import edu.ucla.cens.budburstmobile.helper.HelperPlantItem;
 import edu.ucla.cens.budburstmobile.helper.HelperValues;
+import edu.ucla.cens.budburstmobile.lists.ListDetail;
 import edu.ucla.cens.budburstmobile.lists.ListDownloadFromServer;
 import edu.ucla.cens.budburstmobile.lists.ListItems;
 import edu.ucla.cens.budburstmobile.lists.ListSubCategory;
@@ -170,7 +173,7 @@ public class OneTimeAddMyPlant extends ListActivity {
 		/*
 		 * Connect to the adapter
 		 */
-		lazyadapter = new HelperLazyAdapter(this, arSpeciesList);
+		lazyadapter = new HelperLazyAdapter(this, arSpeciesList, mPreviousActivity);
 		MyList = getListView();
 		MyList.setAdapter(lazyadapter);
 	}
@@ -193,7 +196,7 @@ public class OneTimeAddMyPlant extends ListActivity {
 		/*
 		 * Choosing category dialog is only for FROM_PLANT_LIST
 		 */
-		if(mPreviousActivity == HelperValues.FROM_PLANT_LIST) {
+		if(mPreviousActivity == HelperValues.FROM_ADD_REG) {
 			
 			new AlertDialog.Builder(OneTimeAddMyPlant.this)
 			.setTitle(getString(R.string.AddPlant_SelectCategory))
@@ -225,6 +228,27 @@ public class OneTimeAddMyPlant extends ListActivity {
 			})
 			.setNegativeButton(getString(R.string.Button_back), null)
 			.show();
+		}
+		else if(mPreviousActivity == HelperValues.FROM_PLANT_LIST) {
+			mNewPlantSpeciesID = HelperValues.UNKNOWN_SPECIES;
+			mNewPlantSpeciesName = arSpeciesList.get(position).getCommonName();
+			
+			mSeqUserSite = helper.getUserSite(OneTimeAddMyPlant.this);			
+			
+			Intent intent = new Intent(OneTimeAddMyPlant.this, ListDetail.class);
+			
+			pbbItem.setCommonName(arSpeciesList.get(mCurrentPosition).getCommonName());
+			pbbItem.setScienceName(arSpeciesList.get(mCurrentPosition).getSpeciesName());
+			pbbItem.setProtocolID(mProtocolID);
+			pbbItem.setPhenophaseID(0);
+			pbbItem.setSpeciesID(arSpeciesList.get(mCurrentPosition).getSpeciesID());
+			pbbItem.setCategory(mCategory);
+			Log.d("---------TEST--------", "Local List ");
+		//	Log.d("---------TEST--------", "Plant list, "+mPhenoID+" "+arSpeciesList.get(mCurrentPosition).getCommonName());
+			intent.putExtra("pbbItem", pbbItem);
+			intent.putExtra("from", HelperValues.FROM_LOCAL_PLANT_LISTS);
+			
+			startActivity(intent);
 		}
 		else {
 			
