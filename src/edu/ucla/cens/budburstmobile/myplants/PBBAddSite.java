@@ -609,7 +609,7 @@ public class PBBAddSite extends Activity{
 					 *  Get speciesID if the activity is from LOCAL_BUDBURST_LISTS
 					 * 
 					 */
-					if(mPreviousActivity == HelperValues.FROM_LOCAL_PLANT_LISTS && 
+					if((mPreviousActivity == HelperValues.FROM_LOCAL_PLANT_LISTS || mPreviousActivity == HelperValues.FROM_USER_DEFINED_LISTS) && 
 							(mCategory == HelperValues.LOCAL_BUDBURST_LIST || 
 							mCategory == HelperValues.LOCAL_WHATSINVASIVE_LIST || 
 							mCategory == HelperValues.LOCAL_POISONOUS_LIST || 
