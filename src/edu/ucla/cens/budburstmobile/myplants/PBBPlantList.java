@@ -36,6 +36,7 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -44,6 +45,7 @@ import android.widget.Toast;
 import edu.ucla.cens.budburstmobile.PBBHelpPage;
 import edu.ucla.cens.budburstmobile.PBBMainPage;
 import edu.ucla.cens.budburstmobile.PBBSync;
+import edu.ucla.cens.budburstmobile.mapview.MapViewMain;
 import edu.ucla.cens.budburstmobile.R;
 import edu.ucla.cens.budburstmobile.database.OneTimeDBHelper;
 import edu.ucla.cens.budburstmobile.database.StaticDBHelper;
@@ -51,6 +53,7 @@ import edu.ucla.cens.budburstmobile.database.SyncDBHelper;
 import edu.ucla.cens.budburstmobile.helper.HelperFunctionCalls;
 import edu.ucla.cens.budburstmobile.helper.HelperPlantItem;
 import edu.ucla.cens.budburstmobile.helper.HelperSharedPreference;
+import edu.ucla.cens.budburstmobile.helper.HelperShowAll;
 import edu.ucla.cens.budburstmobile.helper.HelperValues;
 import edu.ucla.cens.budburstmobile.lists.ListDetail;
 import edu.ucla.cens.budburstmobile.onetime.OneTimeMainPage;
@@ -85,6 +88,12 @@ public class PBBPlantList extends ListActivity {
 	private HelperFunctionCalls mHelper;
 	private HashMap<String, Integer> mapUserSiteNameID = new HashMap<String, Integer>();	
 	private ArrayList<HelperPlantItem> mArrPlantItem;
+	
+	
+	//button list menu
+	private ImageButton addReg = null;
+	private ImageButton addSingle = null;
+	private ImageButton map = null;
 	
 	//MENU contents
 	final private int MENU_ADD_PLANT = 1;
@@ -385,7 +394,8 @@ public class PBBPlantList extends ListActivity {
 							synced_species = SyncDBHelper.SYNCED_YES;
 						}
 					}
-
+					if(cursor2.getInt(4) == SyncDBHelper.SYNCED_NO)
+						synced_species = SyncDBHelper.SYNCED_NO;
 				
 					// get total_number_of phenophases from species
 					String total_pheno = "SELECT Phenophase_ID " +
@@ -436,6 +446,90 @@ public class PBBPlantList extends ListActivity {
 			// add ArrayList into the adapter
 			MyListAdapter mylistapdater = new MyListAdapter(this, R.layout.plantlist_item, mArrPlantItem);
 			MyList.setAdapter(mylistapdater);
+			
+			
+			
+			//buton menu list
+			//add a regular observation
+			addReg = (ImageButton)findViewById(R.id.add_reg);
+			addReg.setOnClickListener(new View.OnClickListener(){
+
+				@Override
+				public void onClick(View v) {
+					// TODO Auto-generated method stub					
+					Intent intent = new Intent(PBBPlantList.this, OneTimeMainPage.class);
+					pbbItem = new PBBItems();
+					intent.putExtra("pbbItem", pbbItem);
+					intent.putExtra("from", HelperValues.FROM_ADD_REG);
+					startActivity(intent);
+
+				}		    	
+		    });
+			
+			//add a single observation
+			addSingle = (ImageButton)findViewById(R.id.add_single);
+			addSingle.setOnClickListener(new View.OnClickListener(){
+
+				@Override
+				public void onClick(View v) {
+					// TODO Auto-generated method stub					
+					new AlertDialog.Builder(PBBPlantList.this)
+					.setTitle(getString(R.string.Menu_addQCPlant))
+					.setMessage(getString(R.string.Start_Shared_Plant))
+					.setPositiveButton(getString(R.string.Button_Photo), new DialogInterface.OnClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							// TODO Auto-generated method stub
+							/*
+							 * Move to QuickCapture
+							 */
+							Intent intent = new Intent(PBBPlantList.this, QuickCapture.class);
+							pbbItem = new PBBItems();
+							intent.putExtra("pbbItem", pbbItem);
+							intent.putExtra("from", HelperValues.FROM_QUICK_CAPTURE);
+							startActivity(intent);
+						}
+					})
+					.setNeutralButton(getString(R.string.Button_NoPhoto), new DialogInterface.OnClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							// TODO Auto-generated method stub
+							Intent intent = new Intent(PBBPlantList.this, OneTimeMainPage.class);
+							pbbItem = new PBBItems();
+							pbbItem.setLocalImageName("");
+							intent.putExtra("pbbItem", pbbItem);
+							intent.putExtra("from", HelperValues.FROM_QUICK_CAPTURE);
+							startActivity(intent);
+						}
+					})
+					.setNegativeButton(getString(R.string.Button_Cancel), new DialogInterface.OnClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							// TODO Auto-generated method stub
+						}
+					})
+					.show();
+
+				}		    	
+		    });
+			
+			//go to map page
+			map = (ImageButton)findViewById(R.id.map);
+			map.setOnClickListener(new View.OnClickListener(){
+
+				@Override
+				public void onClick(View v) {
+					// TODO Auto-generated method stub					
+					Intent intent = new Intent(PBBPlantList.this, MapViewMain.class);
+					intent.putExtra("type", 100);
+					startActivity(intent);
+
+				}		    	
+		    });
+			
 		}
 		catch(Exception e){}
 		finally{
@@ -723,7 +817,7 @@ public class PBBPlantList extends ListActivity {
 					/**
 					 * if pbb list chosen and 0 < species_id < 77, we don't allow users to change the value
 					 */
-					if((mPosition <= mOnetimeStartPoint - 1) && mArrPlantItem.get(mPosition).getSpeciesID() > 0 && mArrPlantItem.get(mPosition).getSpeciesID() < 77) {
+					if(((mPosition <= mOnetimeStartPoint - 1) && mArrPlantItem.get(mPosition).getSpeciesID() > 0 && mArrPlantItem.get(mPosition).getSpeciesID() < 77) || (mArrPlantItem.get(mPosition).getSpeciesID()!=999)) {
 						Toast.makeText(PBBPlantList.this, getString(R.string.Cannot_Change), Toast.LENGTH_SHORT).show();
 					}
 					else {
@@ -884,9 +978,9 @@ public class PBBPlantList extends ListActivity {
 		mDialog.show();
 		
 		et1 = (EditText)mDialog.findViewById(R.id.custom_common_name);
-		Button doneBtn = (Button)mDialog.findViewById(R.id.custom_done);
+		Button done = (Button)mDialog.findViewById(R.id.custom_done);
 		
-		doneBtn.setOnClickListener(new View.OnClickListener(){
+		done.setOnClickListener(new View.OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
@@ -951,9 +1045,9 @@ public class PBBPlantList extends ListActivity {
 	 */
 	public boolean onCreateOptionsMenu(Menu menu){
 		super.onCreateOptionsMenu(menu);
-		menu.add(0, MENU_ADD_PLANT, 0, getString(R.string.Menu_addPlant)).setIcon(android.R.drawable.ic_menu_add);
-		menu.add(0, MENU_ADD_QC_PLANT, 0, getString(R.string.Menu_addQCPlant)).setIcon(android.R.drawable.ic_menu_add);
-		menu.add(0, MENU_SYNC, 0, getString(R.string.Menu_sync)).setIcon(android.R.drawable.ic_menu_rotate);
+	//	menu.add(0, MENU_ADD_PLANT, 0, getString(R.string.Menu_addPlant)).setIcon(android.R.drawable.ic_menu_add);
+	//	menu.add(0, MENU_ADD_QC_PLANT, 0, getString(R.string.Menu_addQCPlant)).setIcon(android.R.drawable.ic_menu_add);
+		menu.add(0, MENU_SYNC, 0, getString(R.string.Menu_sync)).setIcon(R.drawable.ic_menu_refresh);
 		menu.add(0, MENU_HELP, 0, getString(R.string.Menu_help)).setIcon(android.R.drawable.ic_menu_help);
 			
 		return true;
