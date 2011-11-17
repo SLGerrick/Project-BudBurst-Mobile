@@ -133,7 +133,7 @@ public class OneTimeMainPage extends ListActivity {
 		 *  > 10 : User Defined Lists
 		 *  and more later.
 		 */
-		iItem.setHeaderText(getString(R.string.List_Official_BudBurst));
+		iItem.setHeaderText("Official plants from Project Budburst");
 	//	iItem.setHeaderText("none");
 		iItem.setTitle(getString(R.string.List_Project_Budburst_title));
 		iItem.setImageURL("pbb_icon_main2");
@@ -200,23 +200,31 @@ public class OneTimeMainPage extends ListActivity {
 	protected void onListItemClick(ListView l, View v, int position, long id){
 	
 		if(position == 0) {
-	/*		if(mPreviousActivity == HelperValues.FROM_PLANT_LIST) {
+		/*	if(mPreviousActivity == HelperValues.FROM_ADD_REG) {
 				Intent intent = new Intent(OneTimeMainPage.this, PBBAddPlant.class);
 				pbbItem.setCategory(HelperValues.LOCAL_BUDBURST_LIST);
 				intent.putExtra("from", mPreviousActivity);
 				intent.putExtra("pbbItem", pbbItem);
 				startActivity(intent);
 			} 
-			// else from Quick_Capture...
-			 * */
 			
+			else if(mPreviousActivity == HelperValues.FROM_PLANT_LIST) {
+				Intent intent = new Intent(OneTimeMainPage.this, PBBAddPlant.class);
+				pbbItem.setCategory(HelperValues.LOCAL_BUDBURST_LIST);
+				intent.putExtra("from", mPreviousActivity);
+				intent.putExtra("pbbItem", pbbItem);
+				startActivity(intent);
+			} 
+			*/
+			// else from Quick_Capture...
+		
 		//	else {
 				Intent intent = new Intent(OneTimeMainPage.this, OneTimePBBLists.class);
 				pbbItem.setCategory(HelperValues.LOCAL_BUDBURST_LIST);
 				intent.putExtra("pbbItem", pbbItem);
 				intent.putExtra("from", mPreviousActivity);
 				startActivity(intent);
-		//	}
+	//		}
 		}
 		else if(position == 1) {
 			showLocalListDialog();
