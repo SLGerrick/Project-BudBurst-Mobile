@@ -34,6 +34,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -59,6 +60,9 @@ public class PBBChangeMyPosition extends MapActivity {
 	private int mPreviousActivity;
 	private PBBItems pbbFloracache;
 	private int floraImageId;
+	private Button mapBtn;
+	private Button gpsBtn;
+	private TextView mTitle;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -69,9 +73,20 @@ public class PBBChangeMyPosition extends MapActivity {
 	    mMapView = (MapView)findViewById(R.id.map);
 	    
 	    mylocInfo = (TextView) findViewById(R.id.myloc_accuracy);
+	    mTitle = (TextView) findViewById(R.id.title);
+	    mTitle.setText("Refine Location");
 	    
+	    //mMapView.invalidate();
+	    mPref = new HelperSharedPreference(this);
+	    mPref.setPreferencesString("accuracy2", "100");
+	    
+	    mapBtn = (Button) findViewById(R.id.mapBtn);
+	    gpsBtn = (Button) findViewById(R.id.gpsBtn);
+	    
+	    mapBtn.setOnClickListener(markerBtnListener);
+		gpsBtn.setOnClickListener(gpsBtnListener);
 	   
-		
+	   
 	    Intent p_intent = getIntent();
 		mPreviousActivity = p_intent.getExtras().getInt("from");
 		
@@ -102,8 +117,7 @@ public class PBBChangeMyPosition extends MapActivity {
 	    mMapView.getOverlays().add(sOverlay);
 	    
 	    
-	    //mMapView.invalidate();
-	    mPref = new HelperSharedPreference(this);
+	   
 	    mLatitude = Double.parseDouble(mPref.getPreferenceString("latitude", "0.0"));
 	    mLongitude = Double.parseDouble(mPref.getPreferenceString("longitude", "0.0"));
 	    
@@ -121,6 +135,80 @@ public class PBBChangeMyPosition extends MapActivity {
 	     
 	    // TODO Auto-generated method stub
 	}
+	
+	private OnClickListener gpsBtnListener = new OnClickListener() {
+
+		public void onClick(View v) {
+
+			// If they choose to use the GPS coordinates
+			mPref.setPreferencesString("latitude", Double.toString(mLatitude));
+			mPref.setPreferencesString("longitude", Double.toString(mLongitude));
+			mPref.setPreferencesString("accuracy", Float.toHexString(mAccuracy));
+			mPref.setPreferencesBoolean("changedLoc", true);
+			locManager.removeUpdates(gpsListener);
+			mOver.disableMyLocation();
+			finish();
+		}
+	};
+	
+	private OnClickListener markerBtnListener = new OnClickListener() {
+
+		public void onClick(View v) {
+
+			// If they choose to use the map's marker coordinates
+			
+			if(mPreviousActivity==HelperValues.FROM_FLORACACHE){
+				double mapLongitude = sOverlay.getLongitude();
+				double mapLatitude = sOverlay.getLatitude();
+				mPref.setPreferencesString("accuracy2", "0.0");
+				float dist[] = new float[1];
+				dist[0]=-1;
+				Location.distanceBetween(mapLatitude, mapLongitude, mTargetLatitude, mTargetLongitude, dist);
+				float distLocs[] = new float[1];
+				Location.distanceBetween(mapLatitude, mapLongitude, mTargetLatitude, mTargetLongitude, dist);
+				Location.distanceBetween(mapLatitude, mapLongitude, mLatitude, mLongitude, distLocs);
+				double mDistance = dist[0];
+				double mapToGpsDistance = distLocs[0];
+				
+				if(mDistance < 15.0 && mDistance>=0 && mapToGpsDistance < 33.0) {
+					Toast.makeText(PBBChangeMyPosition.this, "close enough! Dist: " + String.format("%5.2f", dist[0] * 3.2808399) + "ft", Toast.LENGTH_SHORT).show();	
+					Intent intent2 = new Intent(PBBChangeMyPosition.this, FloracacheDetail.class);
+					PBBItems pbbItem = new PBBItems();							
+					intent2.putExtra("pbbItem", pbbFloracache);
+					intent2.putExtra("image_id", floraImageId);
+					PBBChangeMyPosition.this.startActivity(intent2);
+					
+					locManager.removeUpdates(gpsListener);
+					mOver.disableMyLocation();
+					finish();
+				}
+				
+				else{
+					if(mapToGpsDistance >= 33.0){
+						Toast.makeText(PBBChangeMyPosition.this, 
+								"Marker location not in range", 
+								Toast.LENGTH_SHORT).show();	
+					}
+					else if(mDistance >= 15.0){
+						Toast.makeText(PBBChangeMyPosition.this, 
+								"Not close enough...", 
+								Toast.LENGTH_SHORT).show();	
+						locManager.removeUpdates(gpsListener);
+						mOver.disableMyLocation();
+						finish();
+					}
+				}				
+			}
+			else{
+				mPref.setPreferencesString("accuracy", Float.toHexString(mAccuracy));
+				locManager.removeUpdates(gpsListener);
+				mOver.disableMyLocation();
+				finish();
+			}				
+		}
+			
+	};
+
 	
 	private void showButtonOnMap() {
 		
@@ -177,19 +265,23 @@ public class PBBChangeMyPosition extends MapActivity {
 			if(loc != null) {
 				mLatitude = loc.getLatitude();
 				mLongitude = loc.getLongitude();
-				mAccuracy = loc.getAccuracy();
+			
 				
-				GeoPoint geoPoint = getPoint(mLatitude, mLongitude);
-				
-				mapCon.animateTo(geoPoint);
 				
 				
 				if(mPreviousActivity==HelperValues.FROM_FLORACACHE){
-					mylocInfo.setText("Not close enough.  Please click on the map to refine your location");
-					mAccuracy=100;
+					mylocInfo.setText("Adjust your location by touching the screen and placing a marker where you are.");
+					mAccuracy=33;
+					loc.setAccuracy(33);
+					mPref.setPreferencesString("accuracy2", "100"); 
 				}
-				else 
+				else{
+					mAccuracy = loc.getAccuracy();
 					mylocInfo.setText("Accuracy : " + mAccuracy + "\u00b1m");
+				}
+				
+				GeoPoint geoPoint = getPoint(mLatitude, mLongitude);				
+				mapCon.animateTo(geoPoint);
 				mOver.onLocationChanged(loc);
 				
 			}
@@ -238,6 +330,8 @@ public class PBBChangeMyPosition extends MapActivity {
 	   				mPref.setPreferencesString("longitude", Double.toString(mLongitude));
 	   				mPref.setPreferencesString("accuracy", Float.toHexString(mAccuracy));
 	   				mPref.setPreferencesBoolean("changedLoc", true);
+	   				locManager.removeUpdates(gpsListener);
+	   				mOver.disableMyLocation();
 	   				finish();
 	   			}
 	   		})
@@ -257,6 +351,8 @@ public class PBBChangeMyPosition extends MapActivity {
 					if(mPreviousActivity==HelperValues.FROM_FLORACACHE){
 						double mapLongitude = sOverlay.getLongitude();
 						double mapLatitude = sOverlay.getLatitude();
+						
+						mPref.setPreferencesString("accuracy2", "0.0");
 						
 						float dist[] = new float[1];
 						dist[0]=-1;
@@ -290,7 +386,8 @@ public class PBBChangeMyPosition extends MapActivity {
 							}
 						}
 						
-						
+						locManager.removeUpdates(gpsListener);
+		   				mOver.disableMyLocation();
 						
 						
 						
