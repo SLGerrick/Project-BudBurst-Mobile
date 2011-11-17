@@ -22,6 +22,8 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 import com.google.android.maps.Projection;
 
+import edu.ucla.cens.budburstmobile.helper.HelperSharedPreference;
+
 public class MyLocOverlay extends MyLocationOverlay{
 
 	private Context mContext;
@@ -40,10 +42,11 @@ public class MyLocOverlay extends MyLocationOverlay{
 	private int mRadius;
 	private float previousRadius = 1;
 	private boolean first = true;
+	private HelperSharedPreference mPref;
 	
 	public MyLocOverlay(Context context, MapView mapView) {
 		super(context, mapView);
-		
+		mPref = new HelperSharedPreference(context);
 		mContext = context;
 		mMapView = mapView;
 		mMapController = mMapView.getController();
@@ -52,6 +55,10 @@ public class MyLocOverlay extends MyLocationOverlay{
 
 	@Override
 	protected void drawMyLocation(Canvas canvas, MapView mapView, Location lastFix, GeoPoint myLoc, long when) {
+		
+		
+		if(1==1){
+		}
 		if(mDrawable == null) {
 			mAccuracyPaint = new Paint();
 			mAccuracyPaint.setAntiAlias(true);
@@ -86,7 +93,9 @@ public class MyLocOverlay extends MyLocationOverlay{
 		//double levelToMeters = (mapView.getMaxZoomLevel() - mapView.getZoomLevel()) * 38.31482042;
 		
 		//Log.i("K", "levelToMeters : " + levelToMeters);
-
+		double mAccuracy = Double.parseDouble(mPref.getPreferenceString("accuracy2", "0.0"));
+		if(mAccuracy==100)
+			mRadius= (int) mMapView.getProjection().metersToEquatorPixels(((float)33.0));
 		mAccuracyPaint.setColor(0xff6666ff);
 		mAccuracyPaint.setStyle(Style.STROKE);
         canvas.drawCircle(mCenter.x, mCenter.y, 6, mAccuracyPaint);
@@ -107,7 +116,9 @@ public class MyLocOverlay extends MyLocationOverlay{
 	/* Draw a circle */
 	private void drawCircle(Canvas c, int color, GeoPoint center, 
 							float radius, int alpha, boolean border) {
-		
+		int mAccuracy = Integer.parseInt(mPref.getPreferenceString("accuracy2", "0.0"));
+		if(mAccuracy==100)
+			radius=33;
 		Point scCoord = mMapView.getProjection().toPixels(center, null);
 		float r = mMapView.getProjection().metersToEquatorPixels(radius);
 		 
