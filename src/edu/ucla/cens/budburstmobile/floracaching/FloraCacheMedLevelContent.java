@@ -1,543 +1,200 @@
-package edu.ucla.cens.budburstmobile.floracaching;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-
-import com.google.android.maps.GeoPoint;
-
-import edu.ucla.cens.budburstmobile.R;
-import edu.ucla.cens.budburstmobile.adapter.MyListAdapterFloracache;
-import edu.ucla.cens.budburstmobile.myplants.PBBChangeMyPosition;
-import edu.ucla.cens.budburstmobile.database.OneTimeDBHelper;
-import edu.ucla.cens.budburstmobile.helper.HelperDrawableManager;
-import edu.ucla.cens.budburstmobile.helper.HelperFunctionCalls;
-import edu.ucla.cens.budburstmobile.helper.HelperGpsHandler;
-import edu.ucla.cens.budburstmobile.helper.HelperListItem;
-import edu.ucla.cens.budburstmobile.helper.HelperPlantItem;
-import edu.ucla.cens.budburstmobile.helper.HelperSharedPreference;
-import edu.ucla.cens.budburstmobile.helper.HelperSharedPreference;
-import edu.ucla.cens.budburstmobile.helper.HelperValues;
-import edu.ucla.cens.budburstmobile.mapview.CompassView;
-import edu.ucla.cens.budburstmobile.utils.PBBItems;
-
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
-import android.hardware.GeomagneticField;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.location.Location;
-import android.location.LocationManager;
-import android.os.Bundle;
-import android.os.IBinder;
-import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
-
-public class FloraCacheMedLevelContent extends Activity {
-
-	private LocationManager mLocManager = null;
-	private HelperGpsHandler gpsHandler;
-	private boolean mIsBound;
-	private double mLatitude 		= 0.0;
-	private double mLongitude 		= 0.0;
-	private double gpsLongitude		= 0.0;
-	private double gpsLatitude 		= 0.0;
-	private String mNotes;
-	private double mTargetLatitude;
-	private double mTargetLongitude;
-	private String mTargetNotes;
-	private int mImageID;
-	
-	private ListView mListView;
-	private TextView mDistanceTxt;
-	private TextView mDirectionTxt;
-	private TextView mDescriptionTxt;
-	private TextView mDegreeTxt;
-	private LinearLayout mLayout;
-	private PBBItems pbbItem;
-	private float mDistance;
-	private TextView speciesName;
-	private TextView distance;
-	private ImageView speciesImageView;
-	
-	private Button mMakeOB;
-	private HelperSharedPreference mPref;
-	
-	private static SensorManager mySensorManager;
-	private boolean mSersorRunning;
-	private CompassView mCompassView;
-	private float mSensorValue = 0;
-	
-	private ServiceConnection mConnection = new ServiceConnection() {
-
-		public void onServiceConnected(ComponentName className, IBinder binder) {
-			gpsHandler = ((HelperGpsHandler.GpsBinder) binder).getService();
-			//Toast.makeText(PBBMapMain.this, "Connected", Toast.LENGTH_SHORT).show();
-		}
-
-		public void onServiceDisconnected(ComponentName className) {
-			gpsHandler = null;
-		}
-	};
-	
-	private void doBindService() {
-		
-		Log.i("K", "BindService");
-		
-		bindService(new Intent(FloraCacheMedLevelContent.this, HelperGpsHandler.class), mConnection,
-				Context.BIND_AUTO_CREATE);
-		mIsBound = true;
-	}
-	
-	private void doUnbindService() {
-		
-		Log.i("K", "UnBindService");
-		
-		if(mIsBound) {
-			if(mConnection != null) {
-				
-			}
-
-			unbindService(mConnection);
-			mIsBound = false;
-		}
-	}
-
-	private BroadcastReceiver gpsReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			// TODO Auto-generated method stub
-			Bundle extras = intent.getExtras();
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
+  <LinearLayout
+  	android:layout_width="fill_parent"
+  	android:layout_height="fill_parent"
+  	android:orientation="vertical"
+  	android:weightSum="1">
+  <ScrollView
+  	android:layout_width="fill_parent"
+  	android:layout_height="fill_parent"
+  	android:id="@+id/upper"
+  	android:layout_weight="0.9"
+  >
+  	<LinearLayout
+  		android:layout_width="fill_parent"
+	  	android:layout_height="fill_parent"
+	  	android:orientation="vertical"
+  	>
+  	
+  	<!-- This layout is only for local budburst plant -->
+  	
+  	  <LinearLayout
+  	  	android:layout_width="fill_parent"
+  	  	android:layout_height="wrap_content"
+  	  	android:id="@+id/upper_invisible"
+  	  	android:visibility="gone"
+  	  	android:orientation="vertical"
+  	  	android:layout_margin="5dp"
+  	  >
+  	  	<LinearLayout
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="15dp"
+			android:orientation="horizontal"
+			>
+			<ImageView 
+				android:scaleType="fitCenter"
+				android:paddingLeft="5dp"
+				android:paddingRight="5dp"
+				android:layout_width="90dp" 
+				android:layout_height="90dp" 
+				android:id="@+id/species_image" 
+				android:adjustViewBounds="true"
+				/>		
+			<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="10dp"
+				android:orientation="vertical"
+			>
+				<TextView
+					android:id="@+id/science_name2"
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content"
+					android:textSize="19sp" 
+					android:textColor="@drawable/black" 
+					android:layout_gravity="center"
+					android:textStyle="italic|bold" 
+					android:layout_marginTop="10dp"
+					/>			
 			
-			if(extras.getBoolean("signal")) {
-				// show the compass!
-				mMakeOB.setEnabled(true);
-				
-				mLatitude = extras.getDouble("latitude");
-				mLongitude = extras.getDouble("longitude");
-				gpsLongitude = mLatitude;
-				gpsLatitude = mLongitude;
-				mNotes = extras.getString("notes");
-
-				float dist[] = new float[1];
-				Location.distanceBetween(mLatitude, mLongitude, mTargetLatitude, mTargetLongitude, dist);
-				
-				mDistance = dist[0];
-				mDistanceTxt.setText(String.format("%-20s","+ Distance to plant: ") + String.format("%5dft", (int)(mDistance * 3)));
-				mDirectionTxt.setText(String.format("%-20s","+ Direction to plant: ") + getDirectionStr(bearingTo(mLatitude, mLongitude, mTargetLatitude,  mTargetLongitude))
-						+ " (" + bearingTo(mLatitude, mLongitude, mTargetLatitude,  mTargetLongitude) + "\u00B0" + ")");
-				mDescriptionTxt.setText(mTargetNotes);
-				
-				
-			}
-			// if Gps signal is bad
-			else {
-				//Toast.makeText(FloraCacheMedLevelContent.this, getString(R.string.Low_GPS_Signal), Toast.LENGTH_SHORT).show();
-			}
-		}	
-	};
-
-	private GeoPoint getPoint(double lat, double lon) {
-		return(new GeoPoint((int)(lat*1000000.0), (int)(lon*1000000.0)));
-	}
-
-	/** Called when the activity is first created. */
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-	    super.onCreate(savedInstanceState);
-	    
-	    Bundle bundle = getIntent().getExtras();
-		pbbItem = bundle.getParcelable("pbbItem");
+				<TextView
+					android:id="@+id/common_name2"
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content"
+					android:textSize="17sp" 
+					android:textColor="@drawable/black" 
+					android:layout_gravity="center"
+					android:textStyle="italic|bold" 
+					/>		
+			</LinearLayout>
+		</LinearLayout>
+		<TextView
+			android:layout_marginLeft="5dp"
+			android:layout_marginRight="5dp"
+			android:layout_marginBottom="20dp" 
+			android:layout_marginTop="20dp"
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content"
+			android:textColor="@drawable/black" 
+			android:layout_gravity="left"
+			android:text="Notes"
+			android:textSize="17sp"
+			android:id="@+id/text"
+		/>
 		
-		mPref = new HelperSharedPreference(this);
-		
-		mTargetLatitude = pbbItem.getLatitude();
-		mTargetLongitude = pbbItem.getLongitude();
-		
-		OneTimeDBHelper oDBH = new OneTimeDBHelper(this);
-		mTargetNotes = oDBH.getFloracacheInfo(this, pbbItem.getFloracacheID()).getFloracacheNotes();
-		
-		setTitleBar();
-		
-		speciesName = (TextView) findViewById(R.id.species_name);
-		distance = (TextView) findViewById(R.id.species_info);
-		speciesImageView = (ImageView) findViewById(R.id.species_img);
-		speciesImageView.setBackgroundResource(R.drawable.shapedrawable);
-		
-		mLayout = (LinearLayout) findViewById(R.id.text_field_layout);
-		mDistanceTxt = (TextView) findViewById(R.id.textfield1);
-		mDirectionTxt = (TextView) findViewById(R.id.textfield2);
-		mDescriptionTxt = (TextView) findViewById(R.id.textfield3);
-		
-		//HelperFunctionCalls helper = new HelperFunctionCalls();
-		//helper.showSpeciesThumbNail(this, pbbItem.getCategory(), pbbItem.getSpeciesID(), pbbItem.getScienceName(), imageView);
-		speciesName.setText(pbbItem.getCommonName());
-		ProgressBar spinner = (ProgressBar) findViewById(R.id.spinner);
-		HelperDrawableManager dm = new HelperDrawableManager(FloraCacheMedLevelContent.this, spinner, speciesImageView);
-		dm.fetchDrawableOnThread(pbbItem.getImageURL());
-		
-	    setSensor();
-	    checkGPS();
-	    
-	    speciesImageView.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				final RelativeLayout linear = (RelativeLayout) View.inflate(FloraCacheMedLevelContent.this, R.layout.image_popup, null);
-				
-				AlertDialog.Builder dialog = new AlertDialog.Builder(FloraCacheMedLevelContent.this);
-				ImageView imageView = (ImageView) linear.findViewById(R.id.main_image);
-				ProgressBar spinner = (ProgressBar) linear.findViewById(R.id.spinner);
-				spinner.setVisibility(View.VISIBLE);
-				
-				String getPhotoImageURL = pbbItem.getImageURL();
-				
-				Log.i("K", "pbbItem.getImageURL() : " + pbbItem.getImageURL());
-				
-				HelperDrawableManager dm = new HelperDrawableManager(FloraCacheMedLevelContent.this, spinner, imageView);
-				dm.fetchDrawableOnThread(getPhotoImageURL);
-				
-		        dialog.setView(linear);
-		        dialog.show();
-			}
-		});
-				
-	    mMakeOB = (Button)findViewById(R.id.makeobservation);
-	    mMakeOB.setEnabled(false);
-	    mMakeOB.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				
-				if(pbbItem.getCategory() == HelperValues.LOCAL_WHATSINVASIVE_LIST 
-						|| pbbItem.getCategory() == HelperValues.LOCAL_POISONOUS_LIST
-						|| pbbItem.getCategory() == HelperValues.LOCAL_THREATENED_ENDANGERED_LIST) {
-					OneTimeDBHelper oDBH = new OneTimeDBHelper(FloraCacheMedLevelContent.this);
-					mImageID = oDBH.getImageID(FloraCacheMedLevelContent.this, pbbItem.getScienceName(), pbbItem.getCategory());
-				}
-				
-				if(mDistance < 15.0) {
-					
-					Intent intent = new Intent(FloraCacheMedLevelContent.this, FloracacheDetail.class);
-					PBBItems pbbItems = new PBBItems();
-					pbbItems.setCommonName(pbbItem.getCommonName());
-					pbbItems.setScienceName(pbbItem.getScienceName());
-					pbbItems.setSpeciesID(pbbItem.getSpeciesID());
-					pbbItems.setProtocolID(pbbItem.getProtocolID());
-					pbbItems.setCategory(pbbItem.getCategory());
-					pbbItems.setFloracacheID(pbbItem.getFloracacheID());
-					pbbItems.setLatitude(pbbItem.getLatitude());
-					pbbItems.setLongitude(pbbItem.getLongitude());
-					pbbItems.setIsFloracache(HelperValues.IS_FLORACACHE_YES);
-					pbbItems.setSpeciesImageID(mImageID);
-					
-					intent.putExtra("pbbItem", pbbItems);
-					intent.putExtra("image_id", mImageID);
-					startActivity(intent);
-				
-				}
-				else {
-					
-					//TODO change radius to what Eric wants
-					if(mDistance < 33.0) {
-						
-						new AlertDialog.Builder( FloraCacheMedLevelContent.this )
-				   		.setTitle("You are not close enough. Would you like to refine your location using a touch-map?")
-				   		.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-				   			public void onClick(DialogInterface dialog, int whichButton) {
-				   				//refine location with map
-				   				Intent intentChange = new Intent(FloraCacheMedLevelContent.this, PBBChangeMyPosition.class);
-								intentChange.putExtra("from", HelperValues.FROM_FLORACACHE);
-								intentChange.putExtra("targetLongitude", mTargetLongitude);
-								intentChange.putExtra("targetLatitude", mTargetLatitude);
-								PBBItems pbbItems = new PBBItems();
-								pbbItems.setCommonName(pbbItem.getCommonName());
-								pbbItems.setScienceName(pbbItem.getScienceName());
-								pbbItems.setSpeciesID(pbbItem.getSpeciesID());
-								pbbItems.setProtocolID(pbbItem.getProtocolID());
-								pbbItems.setCategory(pbbItem.getCategory());
-								pbbItems.setFloracacheID(pbbItem.getFloracacheID());
-								pbbItems.setLatitude(pbbItem.getLatitude());
-								pbbItems.setLongitude(pbbItem.getLongitude());
-								pbbItems.setIsFloracache(HelperValues.IS_FLORACACHE_YES);
-								pbbItems.setSpeciesImageID(mImageID);
-								intentChange.putExtra("pbbItem", pbbItems);
-								intentChange.putExtra("image_id", mImageID);
-								FloraCacheMedLevelContent.this.startActivity(intentChange);
-				   				
-				   			}
-				   		})
-				   		.setNegativeButton("No", new DialogInterface.OnClickListener() {
-				   			public void onClick(DialogInterface dialog, int whichButton) {
-				   				//don't refine location				   				
-				   				
-				   			}
-				   		}).show();
-						
-						
-						
-						
-				/*		Intent intentChange = new Intent(FloraCacheMedLevelContent.this, PBBChangeMyPosition.class);
-						intentChange.putExtra("from", HelperValues.FROM_FLORACACHE);
-						startActivity(intentChange);
-						
-						double mapLatitude =  Double.parseDouble(mPref.getPreferenceString("latitude2", "0.0"));
-						double mapLongitude = Double.parseDouble(mPref.getPreferenceString("longitude2", "0.0"));
-			//			mLatitude = mapLatitude;
-			//			mLongitude = mapLongitude;
-						//mAccuracy = mPref.getPreferencesString("accuracy", Float.toHexString(mAccuracy));
-						
-						float dist[] = new float[1];
-						float distLocs[] = new float[1];
-						Location.distanceBetween(mapLatitude, mapLongitude, mTargetLatitude, mTargetLongitude, dist);
-						Location.distanceBetween(mapLatitude, mapLongitude, gpsLatitude, gpsLongitude, distLocs);
-						mDistance = dist[0];
-						double mapToGpsDistance = distLocs[0];
-						if(mDistance < 15.0 && mapToGpsDistance < 100) {
-							
-							Intent intent2 = new Intent(FloraCacheMedLevelContent.this, FloracacheDetail.class);
-							PBBItems pbbItems = new PBBItems();
-							pbbItems.setCommonName(pbbItem.getCommonName());
-							pbbItems.setScienceName(pbbItem.getScienceName());
-							pbbItems.setSpeciesID(pbbItem.getSpeciesID());
-							pbbItems.setProtocolID(pbbItem.getProtocolID());
-							pbbItems.setCategory(pbbItem.getCategory());
-							pbbItems.setFloracacheID(pbbItem.getFloracacheID());
-							pbbItems.setLatitude(pbbItem.getLatitude());
-							pbbItems.setLongitude(pbbItem.getLongitude());
-							pbbItems.setIsFloracache(HelperValues.IS_FLORACACHE_YES);
-							pbbItems.setSpeciesImageID(mImageID);
-							
-							intent2.putExtra("pbbItem", pbbItems);
-							intent2.putExtra("image_id", mImageID);
-							startActivity(intent2);
-						
-						}
-						
-						else{
-							Toast.makeText(FloraCacheMedLevelContent.this, 
-									"Not close enough."+mDistance, 
-									Toast.LENGTH_SHORT).show();	
-						}
-						
-						
-						*/
-					}
-			
-					else{
-						Toast.makeText(FloraCacheMedLevelContent.this, 
-								"Not close enough.", 
-								Toast.LENGTH_SHORT).show();	
-					}
-				}
-				
-			}
-		});
-
-	    // TODO Auto-generated method stub
-	}
-	
-	private void setSensor() {
-		mCompassView = (CompassView) findViewById(R.id.compassview);
-		mCompassView.setVisibility(View.VISIBLE);
-		
-		mySensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-        List<Sensor> mySensors = mySensorManager.getSensorList(Sensor.TYPE_ORIENTATION);
-        
-        if(mySensors.size() > 0){
-        	mySensorManager.registerListener(mySensorEventListener, mySensors.get(0), SensorManager.SENSOR_DELAY_NORMAL);
-        	mSersorRunning = true;
-        	//Toast.makeText(this, "Start ORIENTATION Sensor", Toast.LENGTH_LONG).show();	
-        	
-        }
-        else{
-        	//Toast.makeText(this, "No ORIENTATION Sensor", Toast.LENGTH_LONG).show();
-        	mSersorRunning = false;
-        	finish();	
-        }
-	}
-	
-	private SensorEventListener mySensorEventListener = new SensorEventListener(){
-
-		@Override
-		public void onAccuracyChanged(Sensor sensor, int accuracy) {
-			// TODO Auto-generated method stub
-		}
-
-		@Override
-		public void onSensorChanged(SensorEvent event) {
-			// TODO Auto-generated method stub
-			bearingTo(mLatitude, mLongitude, mTargetLatitude, mTargetLongitude);
-			
-			mSensorValue = (float)event.values[0];
-			
-			//mDirTxt.setText(getDirectionStr(mSensorValue) + " " + mSensorValue + "\u00B0");
-			mCompassView.updateDirection(mSensorValue);
-		}
-    };
-    
-    private String getDirectionStr(float trueBearing) {
-		String direction = "";
-        
-		if((trueBearing > 337.5 && trueBearing <= 360) || (trueBearing >= 0 && trueBearing < 22.5))
-        	direction = "N";
-        if(trueBearing >= 22.5 && trueBearing < 67.5) 
-        	direction ="NE";
-        if(trueBearing >= 67.5 && trueBearing < 112.5) 
-        	direction = "E";
-        if(trueBearing >= 112.5 && trueBearing < 157.5) 
-        	direction = "SE";
-        if(trueBearing >= 157.5 && trueBearing < 202.5) 
-        	direction = "S";
-        if(trueBearing >= 202.5 && trueBearing < 247.5) 
-        	direction = "SW";
-        if(trueBearing >= 247.5 && trueBearing < 292.5) 
-        	direction = "W";
-        if(trueBearing >= 292.5 && trueBearing < 337.5) 
-        	direction = "NW";
-        
-        Log.i("K", "Direction : " + direction);
-        
-        return direction;
-    }
-
-	
-	/**
-	 * 
-	 * Calculates the bearing of the two locations supplied and returns the angle.
-	 * 
-	 */
-	private String bearingP1toP2(double latitude1, double longitude1, double latitude2, double longitude2)
-    {
-		float trueBearing = -(float) (Math.atan2(longitude2 - longitude1, latitude2 - latitude1) * 180 / Math.PI) + 90.0f;       
-		
-		Log.i("K", "Bearing : " + trueBearing);
-
-        if(trueBearing < 0) {
-        	return getDirectionStr((float)trueBearing + 360.0f);
-        }
-        
-        return getDirectionStr((float)trueBearing);
-    }
-	
-	private int bearingTo(double latitude1, double longitude1, double latitude2, double longitude2) {
-		
-		
-		float azimuth = mSensorValue;
-
-		Location currentLoc = new Location("");
-		currentLoc.setLatitude(latitude1);
-		currentLoc.setLongitude(longitude1);
-		
-		Location targetLoc = new Location("");
-		targetLoc.setLatitude(latitude2);
-		targetLoc.setLongitude(longitude2);
-		
-		azimuth = azimuth * 360 / (2 * (float) Math.PI);
-		
-		GeomagneticField geoField = new GeomagneticField(Double.valueOf(currentLoc.getLatitude()).floatValue(),
-														Double.valueOf(currentLoc.getLongitude()).floatValue(),
-														Double.valueOf(currentLoc.getAltitude()).floatValue(),
-														System.currentTimeMillis());
-		
-		azimuth += geoField.getDeclination();
-		float bearing = currentLoc.bearingTo(targetLoc);
-		
-		float direction = azimuth - bearing;
-		
-		if(bearing < 0) {
-        	return (int)(bearing + 360.0f);
-        }
-        
-        return (int)bearing;
-        
-		/*
-		Location currentLoc = new Location("");
-		currentLoc.setLatitude(latitude1);
-		currentLoc.setLongitude(longitude1);
-		
-		Location targetLoc = new Location("");
-		targetLoc.setLatitude(latitude2);
-		targetLoc.setLongitude(longitude2);
-		
-		float bearing = currentLoc.bearingTo(targetLoc);
-		
-		if(bearing < 0) {
-        	return (float)bearing + 360.0f;
-        }
-		
-        return (float)bearing;
-        */
-	}
-	
-	private void checkGPS() {
-		mLocManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		
-		Location lastLoc = mLocManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		if(lastLoc != null) {
-			mLatitude = lastLoc.getLatitude();
-			mLongitude = lastLoc.getLongitude();
-			gpsLatitude = mLatitude;
-			gpsLongitude = mLongitude;
-		}
-		
-		IntentFilter inFilter = new IntentFilter(HelperGpsHandler.GPSHANDLERFILTER);
-		registerReceiver(gpsReceiver, inFilter);
-		
-		doBindService();
-	}
-	
-	
-	public void setTitleBar() {
-		requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
-		setContentView(R.layout.floracachemidleveldetail);
-		getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.pbb_title);
-		
-		ViewGroup v = (ViewGroup) findViewById(R.id.title_bar).getParent().getParent();
-		v = (ViewGroup)v.getChildAt(0);
-		v.setPadding(0, 0, 0, 0);
-
-		TextView myTitleText = (TextView) findViewById(R.id.my_title);
-		myTitleText.setText(" " + getString(R.string.Floracache_Game) + " Medium level");
-	}
-
-	@Override
-	public void onDestroy() {
-		// when user finish this activity, turn off the gps
-		// if there's a overlay, should call disableCompass() explicitly
-		doUnbindService();
-		if(gpsReceiver != null) {
-			unregisterReceiver(gpsReceiver);
-		}
-		
-		if(mSersorRunning){
-			mySensorManager.unregisterListener(mySensorEventListener);	
-		}
-		super.onDestroy();
-	}
-}
+		<Button
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="More info from USDA"
+			android:id="@+id/more_info"
+			android:textSize="18sp"
+			android:layout_marginBottom="10dp"
+		/>
+  	  
+  	  </LinearLayout>
+  	  
+  <!-- Done : Only for local budburst -->
+  
+  
+	  <LinearLayout
+	  	android:layout_width="fill_parent"
+	  	android:layout_height="wrap_content"
+	  	android:orientation="vertical"
+	  	android:gravity="center"
+	  	android:layout_below="@+id/upper_invisible"
+	  	android:id="@+id/lower_info"
+	  >
+	    <ProgressBar
+	  		android:gravity="center"
+	  		android:layout_width="wrap_content"
+	  		android:layout_height="wrap_content"
+	  		android:id="@+id/progressbar"
+	  		android:layout_marginTop="30dp"
+	  		android:layout_marginBottom="30dp"
+	  		android:layout_marginLeft="3dp"
+	  		android:layout_marginRight="3dp"
+	  	/>
+	  	<RelativeLayout
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="wrap_content"
+	  		android:layout_marginTop="10dp"
+	  		android:gravity="center"
+	  	>
+		  	<ImageView
+		  		android:gravity="center"
+		  		android:layout_width="fill_parent"
+		  		android:layout_height="wrap_content"
+		  		android:id="@+id/webimage"
+		  		android:layout_marginTop="5dp"
+		  		android:layout_marginLeft="3dp"
+		  		android:layout_marginRight="3dp"
+		  		android:scaleType="centerCrop"
+		  	/>
+	  	</RelativeLayout>
+	  	<TextView
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="wrap_content"
+	  		android:id="@+id/common_name"
+	  		android:layout_gravity="center"
+	  		android:layout_marginLeft="8dp"
+	  		android:layout_marginTop="5dp"
+	  		android:textSize="18sp"
+	  		android:textStyle="bold|italic"
+	  	/>
+	  	<TextView
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="wrap_content"
+	  		android:id="@+id/science_name"
+	  		android:layout_gravity="center"
+	  		android:layout_marginLeft="8dp"
+	  		android:textSize="17sp"
+	  		android:textStyle="bold|italic"
+	  	/>
+		<TextView
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="wrap_content"
+	  		android:id="@+id/credit"
+	  		android:layout_gravity="center"
+	  		android:layout_marginLeft="8dp"
+	  		android:textSize="17sp"
+	  	/>
+	  	
+	  </LinearLayout>
+	</LinearLayout>
+  </ScrollView>
+  <LinearLayout
+  	android:id="@+id/lower"
+  	android:layout_below="@+id/upper"
+	android:layout_width="fill_parent"
+	android:layout_height="60dp"
+	android:layout_weight="0.1"
+	android:gravity="center"
+	android:visibility="gone"
+	android:weightSum="1"
+	android:orientation="horizontal"
+	android:background="@color/darkgray">
+	  		
+	<Button
+	  	android:layout_width="fill_parent"
+	  	android:layout_height="wrap_content"
+	  	android:layout_weight="0.5"
+	  	android:id="@+id/to_myplant"
+	  	android:textSize="13sp"
+	  	android:text="@string/Menu_addPlant"
+	  />
+	<Button
+	  	android:layout_width="fill_parent"
+	  	android:layout_height="wrap_content"
+	  	android:layout_weight="0.5"
+	  	android:id="@+id/to_shared_plant"
+	  	android:textSize="13sp"
+	  	android:text="@string/Menu_addQCPlant"
+	  />
+  </LinearLayout>
+  </LinearLayout>
+</RelativeLayout>
