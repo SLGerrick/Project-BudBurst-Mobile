@@ -23,6 +23,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.location.Location;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;
@@ -30,11 +31,13 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.OverlayItem;
 
 import edu.ucla.cens.budburstmobile.R;
+import edu.ucla.cens.budburstmobile.floracaching.FloraCacheHardLevel;
 import edu.ucla.cens.budburstmobile.helper.HelperPlantItem;
 import edu.ucla.cens.budburstmobile.helper.HelperValues;
 import edu.ucla.cens.budburstmobile.myplants.GetPhenophaseObserver;
 import edu.ucla.cens.budburstmobile.myplants.GetPhenophaseShared;
 import edu.ucla.cens.budburstmobile.utils.PBBItems;
+import edu.ucla.cens.budburstmobile.helper.HelperSharedPreference;
 
 // overlay class
 public class SpeciesMapOverlay extends BalloonItemizedOverlay<SpeciesOverlayItem> {
@@ -140,29 +143,42 @@ public class SpeciesMapOverlay extends BalloonItemizedOverlay<SpeciesOverlayItem
 		}
 		// If the marker is from other users' list
 		else if(mPlantList.get(index).getWhichList() == HelperValues.OTHERS_PLANT_LIST){
-			// move to species Info.
-			Intent intent = new Intent(mContext, SpeciesDetailMap.class);
 			
-			PBBItems pbbItem = new PBBItems();
-			pbbItem.setSpeciesID(mPlantList.get(index).getSpeciesID());
-			pbbItem.setProtocolID(mPlantList.get(index).getProtocolID());
-			pbbItem.setSiteID(mPlantList.get(index).getPlantID());
-			pbbItem.setCommonName(mPlantList.get(index).getCommonName());
-			pbbItem.setScienceName(mPlantList.get(index).getSpeciesName());
-			pbbItem.setDate(mPlantList.get(index).getDate());
-			pbbItem.setNote(mPlantList.get(index).getNote());
-			pbbItem.setCategory(mPlantList.get(index).getCategory());
-			pbbItem.setPhenophaseID(mPlantList.get(index).getPhenoID());
-			pbbItem.setLatitude(mPlantList.get(index).getLatitude());
-			pbbItem.setLongitude(mPlantList.get(index).getLongitude());
-			pbbItem.setIsFlicker(HelperValues.IS_FLICKR_YES);
+			//if within 50 meters of observation
+			HelperSharedPreference mPref = new HelperSharedPreference(mContext);
+			double mLatitude = Double.parseDouble(mPref.getPreferenceString("latitude", "0.0"));
+			double mLongitude = Double.parseDouble(mPref.getPreferenceString("longitude", "0.0"));
+			double pLatitude = mPlantList.get(index).getLatitude();
+			double pLongitude = mPlantList.get(index).getLongitude();
+			float distLocs[] = new float[1];
+			Location.distanceBetween(mLatitude, mLongitude, pLatitude, pLongitude, distLocs);
+			if(distLocs[0] <= 50){
+				// move to species Info.
+				Intent intent = new Intent(mContext, SpeciesDetailMap.class);
+				
+				PBBItems pbbItem = new PBBItems();
+				pbbItem.setSpeciesID(mPlantList.get(index).getSpeciesID());
+				pbbItem.setProtocolID(mPlantList.get(index).getProtocolID());
+				pbbItem.setSiteID(mPlantList.get(index).getPlantID());
+				pbbItem.setCommonName(mPlantList.get(index).getCommonName());
+				pbbItem.setScienceName(mPlantList.get(index).getSpeciesName());
+				pbbItem.setDate(mPlantList.get(index).getDate());
+				pbbItem.setNote(mPlantList.get(index).getNote());
+				pbbItem.setCategory(mPlantList.get(index).getCategory());
+				pbbItem.setPhenophaseID(mPlantList.get(index).getPhenoID());
+				pbbItem.setLatitude(mPlantList.get(index).getLatitude());
+				pbbItem.setLongitude(mPlantList.get(index).getLongitude());
+				pbbItem.setIsFlicker(HelperValues.IS_FLICKR_YES);
+				
+				intent.putExtra("pbbItem", pbbItem);
+				
+				intent.putExtra("username", mPlantList.get(index).getUserName());
+				intent.putExtra("imageID", mPlantList.get(index).getImageName());
 			
-			intent.putExtra("pbbItem", pbbItem);
-			
-			intent.putExtra("username", mPlantList.get(index).getUserName());
-			intent.putExtra("imageID", mPlantList.get(index).getImageName());
-		
-			mContext.startActivity(intent);
+				mContext.startActivity(intent);
+			}
+			else 
+				Toast.makeText(mContext, "Not close enough. Dist: " + String.format("%5.2f", distLocs[0] * 3.2808399) + "ft", Toast.LENGTH_SHORT).show();	;
 		
 		}
 		else {
@@ -189,8 +205,6 @@ public class SpeciesMapOverlay extends BalloonItemizedOverlay<SpeciesOverlayItem
 		mMap.invalidate();
 	}	
 }
-
-
 
 
 
