@@ -111,7 +111,7 @@ public class PBBChangeMyPosition extends MapActivity {
 	    /*
 	     * Add ItemizedOverlay Overlay
 	     */
-	    Drawable marker = getResources().getDrawable(R.drawable.marker);
+	    Drawable marker = getResources().getDrawable(R.drawable.marker_flag);
 	    marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker.getIntrinsicHeight());
 	    sOverlay = new SitesOverlay(PBBChangeMyPosition.this, marker);	    
 	    mMapView.getOverlays().add(sOverlay);
@@ -270,7 +270,7 @@ public class PBBChangeMyPosition extends MapActivity {
 				
 				
 				if(mPreviousActivity==HelperValues.FROM_FLORACACHE){
-					mylocInfo.setText("Adjust your location by touching the screen and placing a marker where you are.");
+					mylocInfo.setText("Touch the screen to adjust your location within the allowed radius (30 m).");
 					mAccuracy=33;
 					loc.setAccuracy(33);
 					mPref.setPreferencesString("accuracy2", "100"); 

@@ -161,7 +161,7 @@ public class FloraCacheOverlay extends BalloonItemizedOverlay<SpeciesOverlayItem
 		
 		new AlertDialog.Builder( mContext )
    		.setTitle("So Close!")
-   		.setMessage("You are not close enough. Would you like to refine your location using a touch-map?")
+   		.setMessage("You are not quite close enough. Would you like to refine your location using a touch-map?")
    		.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
    			public void onClick(DialogInterface dialog, int whichButton) {
 				//refine location with map
