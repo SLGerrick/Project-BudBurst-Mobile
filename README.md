@@ -12,6 +12,10 @@
 
 ## Changelog
 
+* 2.3.1 (11/18/11)
+  * Fixed a major bug in the Lists feature
+  * Major Floracaching enhancement: you can now adjust your position on the map (within a limited radius, to prevent cheating) if your GPS does not accurately reflect your true location. 
+  * Additional minor fixes and enhancements
 * 2.2.0 (11/1/11)
   * Switched to a new NEON-hosted registration site
   * Major user interface enhancements
