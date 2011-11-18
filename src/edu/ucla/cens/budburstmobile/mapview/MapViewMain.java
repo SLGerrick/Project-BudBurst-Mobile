@@ -109,6 +109,7 @@ public class MapViewMain extends MapActivity{
 	
 	private OneTimeDBHelper otDBH = null;
 	private String bestProvider;
+	private TextView mylocInfo;
 	
 	// Map related variables
 	private LocationManager mLocManager = null;
@@ -207,7 +208,8 @@ public class MapViewMain extends MapActivity{
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.pbb_map);
-		
+		mylocInfo = (TextView) findViewById(R.id.myloc_accuracy);
+		mylocInfo.setText("Currently viewing My Observations.  Select menu to change list.");
 		mLocManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		
 		// Set MapView and the longPressListener
@@ -229,7 +231,7 @@ public class MapViewMain extends MapActivity{
 		
 		// remove view of accuracy bar
 		titleBar = (TextView)findViewById(R.id.myloc_accuracy);
-		titleBar.setVisibility(View.GONE);
+		titleBar.setVisibility(View.VISIBLE);
 		
 		Intent pIntent = getIntent();
 		mType = pIntent.getExtras().getInt("type", 100);
@@ -392,7 +394,7 @@ public class MapViewMain extends MapActivity{
 			
 			doBindService();
 			//showBudburstSpeciesOnMap(false);
-			getOtherUsersListsFromServer(GET_OTHERS_OBSERVATION);
+	//		getOtherUsersListsFromServer(GET_OTHERS_OBSERVATION);
 		}
 		else {
 		   	
@@ -445,7 +447,7 @@ public class MapViewMain extends MapActivity{
 			mMapView.getOverlays().add(new SpeciesMapOverlay(mMapView, mMarker, mPlantList));
 			mMapView.getOverlays().add(mMyOverLay);
 			
-			titleBar.setText("Total number of species : " + mPlantList.size());
+//			titleBar.setText("Total number of species : " + mPlantList.size());
 			
 			mMapController.setCenter(gPoint);
 			
@@ -550,29 +552,40 @@ public class MapViewMain extends MapActivity{
 		
 		new AlertDialog.Builder(MapViewMain.this)
    		.setTitle(getString(R.string.cateogory_text))
-   		.setSingleChoiceItems(mPlantCategory, -1, new DialogInterface.OnClickListener() {
-	
+   		.setMultiChoiceItems(mPlantCategory, mSelect, new DialogInterface.OnMultiChoiceClickListener() {			
 			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				// TODO Auto-generated method stub
-				mSelect[which] = true;
+			public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+				// TODO Auto-generated method stub		
+				if(isChecked){
+					mSelect[which]=true;
+				}
+				else{
+					mSelect[which] = false;
+				}
 			}
-   		})
+		})
    		.setPositiveButton("Done", new DialogInterface.OnClickListener() {
 	
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				// TODO Auto-generated method stub
+				String shownLists = "";
+				int indexShown = 0;
 				for(int i = 0 ; i < mSelect.length ; i++) {
 					if(mSelect[i]) {
+						indexShown++;
 						if(i == 0) {
+							shownLists = shownLists + "(1) My Observations, ";
 							showBudburstSpeciesOnMap(false);
 						}
 						else {
 							getOtherUsersListsFromServer(mArr.get(i).getCategoryID());
+							shownLists = shownLists + "("+indexShown+")"+mPlantCategory[i] +", ";
 						}
 					}
 				}
+				shownLists = shownLists.substring(0, shownLists.length()-2);
+				mylocInfo.setText("Currently viewing "+shownLists + ".  Please select menu to change.");
 			}
 		})
 		.setNegativeButton(getString(R.string.Button_back), null)
