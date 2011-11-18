@@ -317,7 +317,10 @@ public class PBBAddSite extends Activity{
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				startActivity(new Intent(PBBAddSite.this, PBBChangeMyPosition.class));
+				Intent intentChange = new Intent(PBBAddSite.this, PBBChangeMyPosition.class);
+				intentChange.putExtra("from", HelperValues.FROM_ADD_REG);
+				PBBAddSite.this.startActivity(intentChange);
+			//	startActivity(new Intent(, PBBChangeMyPosition.class));
 			}
 		});
 		
@@ -606,7 +609,7 @@ public class PBBAddSite extends Activity{
 					 *  Get speciesID if the activity is from LOCAL_BUDBURST_LISTS
 					 * 
 					 */
-					if(mPreviousActivity == HelperValues.FROM_LOCAL_PLANT_LISTS && 
+					if((mPreviousActivity == HelperValues.FROM_LOCAL_PLANT_LISTS || mPreviousActivity == HelperValues.FROM_USER_DEFINED_LISTS) && 
 							(mCategory == HelperValues.LOCAL_BUDBURST_LIST || 
 							mCategory == HelperValues.LOCAL_WHATSINVASIVE_LIST || 
 							mCategory == HelperValues.LOCAL_POISONOUS_LIST || 

@@ -207,6 +207,15 @@ public class OneTimeMainPage extends ListActivity {
 				intent.putExtra("pbbItem", pbbItem);
 				startActivity(intent);
 			} 
+			
+			else if(mPreviousActivity == HelperValues.FROM_PLANT_LIST) {
+				Intent intent = new Intent(OneTimeMainPage.this, PBBAddPlant.class);
+				pbbItem.setCategory(HelperValues.LOCAL_BUDBURST_LIST);
+				intent.putExtra("from", mPreviousActivity);
+				intent.putExtra("pbbItem", pbbItem);
+				startActivity(intent);
+			} 
+			*/
 			// else from Quick_Capture...
 			 * */
 			

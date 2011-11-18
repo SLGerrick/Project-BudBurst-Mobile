@@ -112,7 +112,7 @@ public class PBBMainPage extends Activity {
 			});
 	    }
 	    
-	    // myPlant button
+	    // myBudburst button
 	    myPlantBtn = (ImageButton)findViewById(R.id.my_plant);
 	    myPlantBtn.setOnClickListener(new View.OnClickListener(){
 
@@ -315,7 +315,7 @@ public class PBBMainPage extends Activity {
 		syncCheck.close();
 	
 		// check if there is any unsynced data from my_observation and onetimeob tables.
-		syncCheck = sync.rawQuery("SELECT synced FROM my_observation", null);
+		syncCheck = sync.rawQuery("SELECT synced FROM my_plants", null);
 		while(syncCheck.moveToNext()) {
 			if(syncCheck.getInt(0) == SyncDBHelper.SYNCED_NO) {
 				synced = SyncDBHelper.SYNCED_NO;

@@ -11,11 +11,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import edu.ucla.cens.budburstmobile.R;
 import edu.ucla.cens.budburstmobile.helper.HelperPlantItem;
+import edu.ucla.cens.budburstmobile.helper.HelperValues;
 import edu.ucla.cens.budburstmobile.myplants.DetailPlantInfo;
 import edu.ucla.cens.budburstmobile.utils.PBBItems;
+import edu.ucla.cens.budburstmobile.lists.ListDetail;
 
 public class MyListAdapter extends BaseAdapter{
 	private Context mContext;
+	private int mPreviousActivity = 0;
 	private LayoutInflater mInflater;
 	private ArrayList<HelperPlantItem> mArr;
 	private int mLayout;
@@ -25,6 +28,15 @@ public class MyListAdapter extends BaseAdapter{
 		mInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		mArr = aarSrc;
 		mLayout = alayout;
+		mPreviousActivity = 0;
+	}
+	
+	public MyListAdapter(Context context, int alayout, ArrayList<HelperPlantItem> aarSrc, int previous){
+		mContext = context;
+		mInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		mArr = aarSrc;
+		mLayout = alayout;
+		mPreviousActivity = previous;
 	}
 	
 	public int getCount(){
@@ -64,6 +76,7 @@ public class MyListAdapter extends BaseAdapter{
 		// call View from the xml and link the view to current position.
 		View thumbnail = convertView.findViewById(R.id.wrap_icon);
 		thumbnail.setTag(mArr.get(position));
+		if(mPreviousActivity == HelperValues.FROM_ADD_REG || mPreviousActivity == HelperValues.FROM_QUICK_CAPTURE || mPreviousActivity == 0){
 		thumbnail.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
@@ -71,15 +84,33 @@ public class MyListAdapter extends BaseAdapter{
 				// TODO Auto-generated method stub
 				HelperPlantItem pi = (HelperPlantItem)v.getTag();
 				
-				Intent intent = new Intent(mContext, DetailPlantInfo.class);
-				PBBItems pbbItem = new PBBItems();
-				pbbItem.setSpeciesID(pi.getSpeciesID());
-				pbbItem.setCommonName(pi.getCommonName());
-				pbbItem.setCategory(pi.getCategory());
-				intent.putExtra("pbbItem", pbbItem);
-				mContext.startActivity(intent);
+				if(mPreviousActivity == HelperValues.FROM_ADD_REG || mPreviousActivity == HelperValues.FROM_QUICK_CAPTURE || mPreviousActivity == 0)
+				{
+					Intent intent = new Intent(mContext, DetailPlantInfo.class);
+					PBBItems pbbItem = new PBBItems();
+					pbbItem.setSpeciesID(pi.getSpeciesID());
+					pbbItem.setCommonName(pi.getCommonName());
+					pbbItem.setCategory(pi.getCategory());
+					pbbItem.setProtocolID(pi.getProtocolID());
+					intent.putExtra("pbbItem", pbbItem);
+					mContext.startActivity(intent);
+				}
+				else {
+					Intent intent = new Intent(mContext, ListDetail.class);
+					PBBItems pbbItem = new PBBItems();
+					pbbItem.setSpeciesID(pi.getSpeciesID());
+					pbbItem.setCommonName(pi.getCommonName());
+					pbbItem.setScienceName(pi.getSpeciesName());
+					pbbItem.setCategory(pi.getCategory());
+					pbbItem.setPhenophaseID(1);
+					pbbItem.setProtocolID(pi.getProtocolID());
+					intent.putExtra("pbbItem", pbbItem);
+					intent.putExtra("from", mPreviousActivity);
+					mContext.startActivity(intent);
+				}
 			}
 		});
+		}
 		return convertView;
 	}
 }

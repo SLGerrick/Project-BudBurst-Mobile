@@ -31,6 +31,7 @@ import edu.ucla.cens.budburstmobile.mapview.SpeciesDetailMap;
 import edu.ucla.cens.budburstmobile.mapview.SpeciesOverlayItem;
 import edu.ucla.cens.budburstmobile.myplants.GetPhenophaseObserver;
 import edu.ucla.cens.budburstmobile.myplants.GetPhenophaseShared;
+import edu.ucla.cens.budburstmobile.myplants.PBBChangeMyPosition;
 import edu.ucla.cens.budburstmobile.onetime.OneTimePhenophase;
 import edu.ucla.cens.budburstmobile.utils.PBBItems;
 import edu.ucla.cens.budburstmobile.utils.QuickCapture;
@@ -46,11 +47,17 @@ public class FloraCacheOverlay extends BalloonItemizedOverlay<SpeciesOverlayItem
 	private int mIndex;
 	private int mImageID;
 	
+	private double mDistance;
+	private HelperSharedPreference mPref;	
+	private double mLatitude 		= 0.0;
+	private double mLongitude 		= 0.0;
+	
 	public FloraCacheOverlay(MapView mapView, Drawable marker, ArrayList<FloracacheItem> plantList) {
 		super(boundCenter(marker), mapView);
 		
 		mContext = mapView.getContext();
 		mPlantList = plantList;
+		mPref = new HelperSharedPreference(mContext);
 
 		// read data from the table
 		for(int i = 0 ; i < mPlantList.size() ; i++) {
@@ -130,13 +137,110 @@ public class FloraCacheOverlay extends BalloonItemizedOverlay<SpeciesOverlayItem
 			showDialog();
 		}
 		else {
-			Toast.makeText(mContext, "Not close enough. Dist: " + String.format("%5.2f", distResult[0] * 3.2808399) + "ft", Toast.LENGTH_SHORT).show();	
+			if(distResult[0] <= 33.0) {
+				//TODO add the pbbchangelocation here
+				pbbchangelocation(latitude, longitude);
+		//		showDialog();
+			}
+			
+			
+			else
+				Toast.makeText(mContext, "Not close enough. Dist: " + String.format("%5.2f", distResult[0] * 3.2808399) + "ft", Toast.LENGTH_SHORT).show();	
 		}
 			
 		hideBalloon();
 		
 		return true;
 	}
+	
+	private void pbbchangelocation(double mTargetLatitude, double mTargetLongitude){
+		//Change location activity and floracache information being sent
+		
+		AlertDialog.Builder alert = new AlertDialog.Builder( mContext );
+		
+		
+		new AlertDialog.Builder( mContext )
+   		.setTitle("So Close!")
+   		.setMessage("You are not close enough. Would you like to refine your location using a touch-map?")
+   		.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+   			public void onClick(DialogInterface dialog, int whichButton) {
+				//refine location with map
+   				Intent intentChange = new Intent(mContext, PBBChangeMyPosition.class);
+				intentChange.putExtra("from", HelperValues.FROM_FLORACACHE);
+				intentChange.putExtra("targetLongitude", mPlantList.get(mIndex).getLongitude());
+				intentChange.putExtra("targetLatitude", mPlantList.get(mIndex).getLatitude());
+				PBBItems pbbItemChange = new PBBItems();
+				pbbItemChange.setCommonName(mPlantList.get(mIndex).getCommonName());
+				pbbItemChange.setScienceName(mPlantList.get(mIndex).getScienceName());
+				pbbItemChange.setSpeciesID(mPlantList.get(mIndex).getUserSpeciesID());
+				pbbItemChange.setProtocolID(mPlantList.get(mIndex).getProtocolID());
+				pbbItemChange.setCategory(mPlantList.get(mIndex).getUserSpeciesCategoryID());
+				pbbItemChange.setIsFloracache(HelperValues.IS_FLORACACHE_YES); // set floracacheID to easy value
+				pbbItemChange.setFloracacheID(mPlantList.get(mIndex).getFloracacheID());
+				pbbItemChange.setLatitude(mPlantList.get(mIndex).getLatitude());
+				pbbItemChange.setLongitude(mPlantList.get(mIndex).getLongitude());
+				intentChange.putExtra("pbbItem", pbbItemChange);
+				mContext.startActivity(intentChange);
+   			}
+   		})
+   		.setNegativeButton("No", new DialogInterface.OnClickListener() {
+   			public void onClick(DialogInterface dialog, int whichButton) {
+   				//don't refine location				   				
+   				
+   			}
+   		}).show();
+		
+//		boolean changedLoc = mPref.getPreferenceBoolean("changedLoc");
+// 		Toast.makeText(mContext, "Not close enough. Dist: ", Toast.LENGTH_SHORT).show();	
+//		while(!changedLoc){
+//			changedLoc = mPref.getPreferenceBoolean("changedLoc");
+//		}
+		
+/*		double mapLatitude = Double.parseDouble(mPref.getPreferenceString("latitude2", "0.0"));
+		double mapLongitude = Double.parseDouble(mPref.getPreferenceString("longitude2", "0.0"));
+		double gpsLatitude = Double.parseDouble(mPref.getPreferenceString("latitude", "0.0"));
+		double gpsLongitude = Double.parseDouble(mPref.getPreferenceString("longitude", "0.0"));
+//		mLongitude = mapLongitude;
+//		mLatitude = mapLatitude;
+//		mAccuracy = mPref.getPreferencesString("accuracy", Float.toHexString(mAccuracy));
+		
+		float dist[] = new float[1];
+		dist[0]=-1;
+		Location.distanceBetween(mapLatitude, mapLongitude, mTargetLatitude, mTargetLongitude, dist);
+		float distLocs[] = new float[1];
+		Location.distanceBetween(mapLatitude, mapLongitude, mTargetLatitude, mTargetLongitude, dist);
+		Location.distanceBetween(mapLatitude, mapLongitude, gpsLatitude, gpsLongitude, distLocs);
+		mDistance = dist[0];
+		double mapToGpsDistance = distLocs[0];
+		if(mDistance < 15.0 && mDistance>=0 && mapToGpsDistance < 100) {
+			Toast.makeText(mContext, "close enough! Dist: " + String.format("%5.2f", dist[0] * 3.2808399) + "ft", Toast.LENGTH_SHORT).show();	
+			
+			Intent intent2 = new Intent(mContext, FloracacheDetail.class);
+			PBBItems pbbItem = new PBBItems();
+			pbbItem.setCommonName(mPlantList.get(mIndex).getCommonName());
+			pbbItem.setScienceName(mPlantList.get(mIndex).getScienceName());
+			pbbItem.setSpeciesID(mPlantList.get(mIndex).getUserSpeciesID());
+			pbbItem.setProtocolID(mPlantList.get(mIndex).getProtocolID());
+			pbbItem.setCategory(mPlantList.get(mIndex).getUserSpeciesCategoryID());
+			pbbItem.setIsFloracache(HelperValues.IS_FLORACACHE_YES); // set floracacheID to easy value
+			pbbItem.setFloracacheID(mPlantList.get(mIndex).getFloracacheID());
+			pbbItem.setLatitude(mPlantList.get(mIndex).getLatitude());
+			pbbItem.setLongitude(mPlantList.get(mIndex).getLongitude());
+			
+			intent2.putExtra("pbbItem", pbbItem);
+			intent2.putExtra("image_id", mImageID);
+			mContext.startActivity(intent2);			
+		
+		}
+		
+		else{
+			Toast.makeText(mContext, 
+					"Not close enough...", 
+					Toast.LENGTH_SHORT).show();	
+		}
+		*/
+	}
+	
 	
 	private void showDialog() {
 		

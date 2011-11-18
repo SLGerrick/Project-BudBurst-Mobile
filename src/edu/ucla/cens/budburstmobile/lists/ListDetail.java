@@ -88,6 +88,7 @@ public class ListDetail extends Activity {
 	private Button sharedplantBtn;
 	private LinearLayout usdaLayout;
 	private PBBItems pbbItem;
+	private int mHasFooter=1;
 	
 	private HelperFunctionCalls mHelper;
 	private HashMap<String, Integer> mMapUserSiteNameID = new HashMap<String, Integer>();
@@ -117,16 +118,19 @@ public class ListDetail extends Activity {
 		mCommonName = pbbItem.getCommonName();
 		mSpeciesID = pbbItem.getSpeciesID();
 		mProtocolID = pbbItem.getProtocolID();
+		mHasFooter = pbbItem.getPhenophaseID();
 		mPreviousActivity = bundle.getInt("from");
 		
 		Log.i("K", "mCategory : " + mCategory);
 		
 		
     	// Show footer or not.
-    	if(mPreviousActivity == HelperValues.FROM_PLANT_LIST) {
+    	if(mHasFooter==HelperValues.FOOTER) {
     		LinearLayout footer = (LinearLayout)findViewById(R.id.lower);
-    		footer.setVisibility(View.GONE);
-    	}
+    		footer.setVisibility(View.VISIBLE);
+       	}
+    	else
+    		mCategory = 42;
     	
 	    // setup the layout
 		speciesImage = (ImageView) findViewById(R.id.webimage);
@@ -205,12 +209,17 @@ public class ListDetail extends Activity {
 				});
 			} 
 		
+			if(mHasFooter==HelperValues.FOOTER) {
+	    		LinearLayout footer = (LinearLayout)findViewById(R.id.lower);
+	    		footer.setVisibility(View.VISIBLE);
+	       	}
+	    	else
+	    		mCategory = 42;
 			/*
 		     * Retrieve information from localPlantLists
 		     */
-		    cursor = db.rawQuery("SELECT common_name, science_name, county, state, usda_url, photo_url, copy_right, image_id FROM localPlantLists WHERE category=" 
-		    		+ mCategory 
-		    		+ " AND science_name=\"" + mScienceName 
+		    cursor = db.rawQuery("SELECT common_name, science_name, county, state, usda_url, photo_url, copy_right, image_id FROM localPlantLists WHERE " 
+		    		+ "science_name=\"" + mScienceName 
 		    		+"\"" , null);
 		    	
 		    String image_url = "";
@@ -368,8 +377,7 @@ public class ListDetail extends Activity {
 	    	Log.i("K", "speciesID(Tree) : " + mSpeciesID);
 	    	
 	    	cursor = db.rawQuery("SELECT common_name, science_name, credit FROM userDefineLists WHERE id=" 
-	    			+ mSpeciesID +" AND category=" 
-	    			+ mCategory +";", null);
+	    			+ mSpeciesID +";", null);
 			while(cursor.moveToNext()) {
 				cName.setText(cursor.getString(0));
 				sName.setText(cursor.getString(1));
@@ -651,7 +659,7 @@ public class ListDetail extends Activity {
 				
 				// if category is not LOCAL_PLANT_LIST,
 				// we put speciesID to Unknown(999)
-				if(mCategory != HelperValues.LOCAL_BUDBURST_LIST) {
+				if(mCategory != HelperValues.LOCAL_BUDBURST_LIST && mPreviousActivity != HelperValues.FROM_USER_DEFINED_LISTS) {
 					mSpeciesID = HelperValues.UNKNOWN_SPECIES;
 				}
 				

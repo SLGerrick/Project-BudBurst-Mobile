@@ -36,6 +36,11 @@ import edu.ucla.cens.budburstmobile.mapview.MyLocOverlay;
 import edu.ucla.cens.budburstmobile.mapview.SpeciesMapOverlay;
 import edu.ucla.cens.budburstmobile.myplants.PBBPlantList;
 
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.TextView;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -58,6 +63,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -81,6 +87,7 @@ public class FloraCacheEasyLevel extends MapActivity {
 	private HelperPlantItem pItem;
 	private Drawable mMarker;
 	private int mGroupID;
+	private LinearLayout mBtnRow;
 	
 	private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -148,7 +155,7 @@ public class FloraCacheEasyLevel extends MapActivity {
 				
 				// convert points into GeoPoint
 			    GeoPoint gPoint = getPoint(mLatitude, mLongitude);
-
+			    
 			    // center the map
 			    if(mFirstGps) {
 			    	mMapController.setCenter(gPoint);
@@ -173,8 +180,7 @@ public class FloraCacheEasyLevel extends MapActivity {
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	
-	    setContentView(R.layout.floracache_map);
-	    
+	    setContentView(R.layout.pbb_map);
 	    Intent gIntent = getIntent();
 	    mGroupID = gIntent.getExtras().getInt("group_id");
 		
@@ -186,6 +192,9 @@ public class FloraCacheEasyLevel extends MapActivity {
 		// Set mapController
 		mMapController = mMapView.getController();
 		mMapController.setZoom(12);
+		
+//		mBtnRow = (LinearLayout) findViewById(R.id.button_row);
+//		mBtnRow.setVisibility(0);
 		
 		// Add mylocation overlay
 		mMyOverLay = new MyLocOverlay(FloraCacheEasyLevel.this, mMapView);
@@ -288,10 +297,12 @@ public class FloraCacheEasyLevel extends MapActivity {
 			OneTimeDBHelper oDBH = new OneTimeDBHelper(this);
 			mPlantList = oDBH.getFloracacheLists(FloraCacheEasyLevel.this, HelperValues.FLORACACHE_EASY, mGroupID, mLatitude, mLongitude);
 		
-			mMapView.getOverlays().add(new FloraCacheOverlay(mMapView, mMarker, mPlantList));
-			mMapView.getOverlays().add(mMyOverLay);
-			
 			GeoPoint gPoint = new GeoPoint((int)(mLatitude * 1000000), (int)(mLongitude * 1000000));
+			
+			mMapView.getOverlays().add(mMyOverLay);
+			mMapView.getOverlays().add(new FloraCacheOverlay(mMapView, mMarker, mPlantList));
+			
+						
 			
 			mMapController.setCenter(gPoint);
 			mMapController.setZoom(18);
@@ -305,10 +316,11 @@ public class FloraCacheEasyLevel extends MapActivity {
 		mMapView.getOverlays().clear();
 		mMapView.invalidate();
 		
+		GeoPoint gPoint = new GeoPoint((int)(mLatitude * 1000000), (int)(mLongitude * 1000000));
+		
 		mMapView.getOverlays().add(new FloraCacheOverlay(mMapView, mMarker, mPlantList));
 		mMapView.getOverlays().add(mMyOverLay);
-		
-		GeoPoint gPoint = new GeoPoint((int)(mLatitude * 1000000), (int)(mLongitude * 1000000));
+				
 		
 		mMapController.setCenter(gPoint);
 	}

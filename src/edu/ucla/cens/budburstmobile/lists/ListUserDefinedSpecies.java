@@ -1,5 +1,7 @@
 package edu.ucla.cens.budburstmobile.lists;
 
+//List for User Defined Species plants
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -145,8 +147,10 @@ public class ListUserDefinedSpecies extends ListActivity {
 			pi.setProtocolID(cursor.getInt(4));
 			mArr.add(pi);
 		}
-		
-		mAdapter = new MyListAdapterWithIndex(ListUserDefinedSpecies.this, R.layout.plantlist_item, mArr);
+		if(mPreviousActivity == HelperValues.FROM_ADD_REG || mPreviousActivity == HelperValues.FROM_QUICK_CAPTURE)
+			mAdapter = new MyListAdapterWithIndex(ListUserDefinedSpecies.this, R.layout.plantlist_item, mArr, mPreviousActivity);
+		else
+			mAdapter = new MyListAdapterWithIndex(ListUserDefinedSpecies.this, R.layout.plantlist_item, mArr, mPreviousActivity);
 		mListView = getListView();
 		// need to add setFastScrollEnalbed(true) for showing the index box in the list...
 		mListView.setFastScrollEnabled(true);
@@ -174,7 +178,7 @@ public class ListUserDefinedSpecies extends ListActivity {
 		 *  2. others : move to ListsDetail page.
 		 */
 		
-		if(mPreviousActivity == HelperValues.FROM_PLANT_LIST) {
+		if(mPreviousActivity == HelperValues.FROM_ADD_REG) {
 			showPlantDialog(position);
 		}
 		else if(mPreviousActivity == HelperValues.FROM_QUICK_CAPTURE) {
@@ -192,6 +196,7 @@ public class ListUserDefinedSpecies extends ListActivity {
 			startActivity(intent);
 		}
 		else {
+			//if(mPreviousActivity == HelperValues.FROM_PLANT_LIST) {
 			Intent intent = new Intent(ListUserDefinedSpecies.this, ListDetail.class);
 			pbbItem.setSpeciesID(mArr.get(mCurrentPosition).getSpeciesID());
 			pbbItem.setCommonName(mArr.get(mCurrentPosition).getCommonName());
@@ -212,7 +217,7 @@ public class ListUserDefinedSpecies extends ListActivity {
 		/*
 		 * If the previous activity is from MY_PLANT, show the popup message.
 		 */
-		if(mPreviousActivity == HelperValues.FROM_PLANT_LIST) {
+		if(mPreviousActivity == HelperValues.FROM_ADD_REG) {
 			popupDialog(mCurrentPosition);
 		}
 		/*
@@ -256,21 +261,20 @@ public class ListUserDefinedSpecies extends ListActivity {
 				
 				if(new_plant_site_name == "Add New Site") {
 					Intent intent = new Intent(ListUserDefinedSpecies.this, PBBAddSite.class);
-					pbbItem.setSpeciesID(HelperValues.UNKNOWN_SPECIES);
+					pbbItem.setSpeciesID(mArr.get(mCurrentPosition).getSpeciesID());
 					pbbItem.setCommonName(mArr.get(mCurrentPosition).getCommonName());
 					pbbItem.setProtocolID(mArr.get(mCurrentPosition).getProtocolID());
 					
 					intent.putExtra("pbbItem", pbbItem);
-					intent.putExtra("from", HelperValues.FROM_PLANT_LIST);
-					
+					intent.putExtra("from", HelperValues.FROM_PLANT_LIST);					
 					startActivity(intent);
 				}
 				else {
-					if(mHelper.checkIfNewPlantAlreadyExists(HelperValues.UNKNOWN_SPECIES, 
+					if(mHelper.checkIfNewPlantAlreadyExists(mArr.get(mCurrentPosition).getSpeciesID(), 
 							new_plant_site_id, ListUserDefinedSpecies.this)){
 						Toast.makeText(ListUserDefinedSpecies.this, getString(R.string.AddPlant_alreadyExists), Toast.LENGTH_LONG).show();
 					}else{
-						if(mHelper.insertNewMyPlantToDB(ListUserDefinedSpecies.this, HelperValues.UNKNOWN_SPECIES, 
+						if(mHelper.insertNewMyPlantToDB(ListUserDefinedSpecies.this, mArr.get(mCurrentPosition).getSpeciesID(), 
 								mNewPlantSpeciesName, new_plant_site_id, new_plant_site_name, 
 								mArr.get(mCurrentPosition).getProtocolID(), mCategory)){
 							Intent intent = new Intent(ListUserDefinedSpecies.this, PBBPlantList.class);

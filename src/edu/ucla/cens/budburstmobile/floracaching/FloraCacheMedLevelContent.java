@@ -10,12 +10,14 @@ import com.google.android.maps.GeoPoint;
 
 import edu.ucla.cens.budburstmobile.R;
 import edu.ucla.cens.budburstmobile.adapter.MyListAdapterFloracache;
+import edu.ucla.cens.budburstmobile.myplants.PBBChangeMyPosition;
 import edu.ucla.cens.budburstmobile.database.OneTimeDBHelper;
 import edu.ucla.cens.budburstmobile.helper.HelperDrawableManager;
 import edu.ucla.cens.budburstmobile.helper.HelperFunctionCalls;
 import edu.ucla.cens.budburstmobile.helper.HelperGpsHandler;
 import edu.ucla.cens.budburstmobile.helper.HelperListItem;
 import edu.ucla.cens.budburstmobile.helper.HelperPlantItem;
+import edu.ucla.cens.budburstmobile.helper.HelperSharedPreference;
 import edu.ucla.cens.budburstmobile.helper.HelperSharedPreference;
 import edu.ucla.cens.budburstmobile.helper.HelperValues;
 import edu.ucla.cens.budburstmobile.mapview.CompassView;
@@ -26,6 +28,7 @@ import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -59,6 +62,8 @@ public class FloraCacheMedLevelContent extends Activity {
 	private boolean mIsBound;
 	private double mLatitude 		= 0.0;
 	private double mLongitude 		= 0.0;
+	private double gpsLongitude		= 0.0;
+	private double gpsLatitude 		= 0.0;
 	private String mNotes;
 	private double mTargetLatitude;
 	private double mTargetLongitude;
@@ -78,6 +83,7 @@ public class FloraCacheMedLevelContent extends Activity {
 	private ImageView speciesImageView;
 	
 	private Button mMakeOB;
+	private HelperSharedPreference mPref;
 	
 	private static SensorManager mySensorManager;
 	private boolean mSersorRunning;
@@ -132,6 +138,8 @@ public class FloraCacheMedLevelContent extends Activity {
 				
 				mLatitude = extras.getDouble("latitude");
 				mLongitude = extras.getDouble("longitude");
+				gpsLongitude = mLatitude;
+				gpsLatitude = mLongitude;
 				mNotes = extras.getString("notes");
 
 				float dist[] = new float[1];
@@ -163,6 +171,8 @@ public class FloraCacheMedLevelContent extends Activity {
 	    
 	    Bundle bundle = getIntent().getExtras();
 		pbbItem = bundle.getParcelable("pbbItem");
+		
+		mPref = new HelperSharedPreference(this);
 		
 		mTargetLatitude = pbbItem.getLatitude();
 		mTargetLongitude = pbbItem.getLongitude();
@@ -252,9 +262,98 @@ public class FloraCacheMedLevelContent extends Activity {
 				
 				}
 				else {
-					Toast.makeText(FloraCacheMedLevelContent.this, 
-							"Not close enough.", 
-							Toast.LENGTH_SHORT).show();	
+					
+					//TODO change radius to what Eric wants
+					if(mDistance < 33.0) {
+						
+						new AlertDialog.Builder( FloraCacheMedLevelContent.this )
+				   		.setTitle("You are not close enough. Would you like to refine your location using a touch-map?")
+				   		.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				   			public void onClick(DialogInterface dialog, int whichButton) {
+				   				//refine location with map
+				   				Intent intentChange = new Intent(FloraCacheMedLevelContent.this, PBBChangeMyPosition.class);
+								intentChange.putExtra("from", HelperValues.FROM_FLORACACHE);
+								intentChange.putExtra("targetLongitude", mTargetLongitude);
+								intentChange.putExtra("targetLatitude", mTargetLatitude);
+								PBBItems pbbItems = new PBBItems();
+								pbbItems.setCommonName(pbbItem.getCommonName());
+								pbbItems.setScienceName(pbbItem.getScienceName());
+								pbbItems.setSpeciesID(pbbItem.getSpeciesID());
+								pbbItems.setProtocolID(pbbItem.getProtocolID());
+								pbbItems.setCategory(pbbItem.getCategory());
+								pbbItems.setFloracacheID(pbbItem.getFloracacheID());
+								pbbItems.setLatitude(pbbItem.getLatitude());
+								pbbItems.setLongitude(pbbItem.getLongitude());
+								pbbItems.setIsFloracache(HelperValues.IS_FLORACACHE_YES);
+								pbbItems.setSpeciesImageID(mImageID);
+								intentChange.putExtra("pbbItem", pbbItems);
+								intentChange.putExtra("image_id", mImageID);
+								FloraCacheMedLevelContent.this.startActivity(intentChange);
+				   				
+				   			}
+				   		})
+				   		.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				   			public void onClick(DialogInterface dialog, int whichButton) {
+				   				//don't refine location				   				
+				   				
+				   			}
+				   		}).show();
+						
+						
+						
+						
+				/*		Intent intentChange = new Intent(FloraCacheMedLevelContent.this, PBBChangeMyPosition.class);
+						intentChange.putExtra("from", HelperValues.FROM_FLORACACHE);
+						startActivity(intentChange);
+						
+						double mapLatitude =  Double.parseDouble(mPref.getPreferenceString("latitude2", "0.0"));
+						double mapLongitude = Double.parseDouble(mPref.getPreferenceString("longitude2", "0.0"));
+			//			mLatitude = mapLatitude;
+			//			mLongitude = mapLongitude;
+						//mAccuracy = mPref.getPreferencesString("accuracy", Float.toHexString(mAccuracy));
+						
+						float dist[] = new float[1];
+						float distLocs[] = new float[1];
+						Location.distanceBetween(mapLatitude, mapLongitude, mTargetLatitude, mTargetLongitude, dist);
+						Location.distanceBetween(mapLatitude, mapLongitude, gpsLatitude, gpsLongitude, distLocs);
+						mDistance = dist[0];
+						double mapToGpsDistance = distLocs[0];
+						if(mDistance < 15.0 && mapToGpsDistance < 100) {
+							
+							Intent intent2 = new Intent(FloraCacheMedLevelContent.this, FloracacheDetail.class);
+							PBBItems pbbItems = new PBBItems();
+							pbbItems.setCommonName(pbbItem.getCommonName());
+							pbbItems.setScienceName(pbbItem.getScienceName());
+							pbbItems.setSpeciesID(pbbItem.getSpeciesID());
+							pbbItems.setProtocolID(pbbItem.getProtocolID());
+							pbbItems.setCategory(pbbItem.getCategory());
+							pbbItems.setFloracacheID(pbbItem.getFloracacheID());
+							pbbItems.setLatitude(pbbItem.getLatitude());
+							pbbItems.setLongitude(pbbItem.getLongitude());
+							pbbItems.setIsFloracache(HelperValues.IS_FLORACACHE_YES);
+							pbbItems.setSpeciesImageID(mImageID);
+							
+							intent2.putExtra("pbbItem", pbbItems);
+							intent2.putExtra("image_id", mImageID);
+							startActivity(intent2);
+						
+						}
+						
+						else{
+							Toast.makeText(FloraCacheMedLevelContent.this, 
+									"Not close enough."+mDistance, 
+									Toast.LENGTH_SHORT).show();	
+						}
+						
+						
+						*/
+					}
+			
+					else{
+						Toast.makeText(FloraCacheMedLevelContent.this, 
+								"Not close enough.", 
+								Toast.LENGTH_SHORT).show();	
+					}
 				}
 				
 			}
@@ -402,7 +501,9 @@ public class FloraCacheMedLevelContent extends Activity {
 		Location lastLoc = mLocManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		if(lastLoc != null) {
 			mLatitude = lastLoc.getLatitude();
-			mLongitude = lastLoc.getLongitude();			
+			mLongitude = lastLoc.getLongitude();
+			gpsLatitude = mLatitude;
+			gpsLongitude = mLongitude;
 		}
 		
 		IntentFilter inFilter = new IntentFilter(HelperGpsHandler.GPSHANDLERFILTER);
