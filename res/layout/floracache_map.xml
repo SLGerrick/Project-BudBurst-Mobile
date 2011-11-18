@@ -1,19 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent"
-	android:layout_height="fill_parent">
+	android:id="@+id/screen"
+	android:layout_height="fill_parent"
+	android:orientation="vertical">
+	
+
+<TextView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/title"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:paddingLeft="5dp"
+	android:textSize="15sp"
+	style="?android:attr/listSeparatorTextViewStyle"
+	android:background="@color/BudBurstBackground"
+	android:textColor="@drawable/white"/>
 	<TextView
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:id="@+id/myloc_accuracy"
+		android:layout_below="@id/title"
+		android:textSize="17sp"
 		android:padding="2dp"
 		android:textStyle="bold"
 	/>
-	<com.google.android.maps.MapView
+	<edu.ucla.cens.budburstmobile.mapview.MapCustomView
 		android:layout_below="@+id/myloc_accuracy" 
 		android:id="@+id/map"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
 		android:apiKey="@string/mapKey"
 		android:clickable="true" />
+	
+	<LinearLayout
+		android:orientation="horizontal"
+		android:id="@+id/button_row"
+		android:layout_width="fill_parent"
+		android:layout_height="70sp"
+		android:visibility="visible"
+		android:gravity="fill_horizontal"
+		android:layout_alignBottom='@id/screen'
+		android:layout_alignParentBottom="true"	
+		android:weightSum="2"
+		>
+	
+ 		<LinearLayout
+			android:orientation="vertical"
+			android:layout_height="fill_parent"
+			android:layout_gravity="fill_horizontal"
+			android:layout_width="fill_parent"
+			android:layout_weight="1"
+			>
+			 
+				<Button
+					android:layout_height="fill_parent"
+					android:text="Use Marker"
+					android:layout_width="fill_parent"
+					android:id="@+id/mapBtn"
+					/>
+			
+		</LinearLayout>
+		<LinearLayout
+			android:orientation="vertical"
+			android:layout_height="fill_parent"
+			android:layout_width="fill_parent"
+			android:layout_gravity="fill_horizontal"
+			android:layout_weight="1"
+			>
+			 
+				<Button
+				android:layout_height="fill_parent"
+				android:layout_width="fill_parent"
+				android:text="Use GPS"
+				android:id="@+id/gpsBtn"
+				/>
+				
+		</LinearLayout>
+		  
+
+	</LinearLayout>
+	
+	
 </RelativeLayout>

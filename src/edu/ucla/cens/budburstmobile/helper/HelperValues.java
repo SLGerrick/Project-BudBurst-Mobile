@@ -33,6 +33,7 @@ public class HelperValues {
 	public static final int FROM_QC_PHENOPHASE = 1001;
 	public static final int FROM_LOCAL_PLANT_LISTS = 1002;
 	public static final int FROM_FLORACACHE = 1003;
+	public static final int FROM_ADD_REG = 1004;
 	
 	// GPS variable
 	public static final String GPX_SERVICE = "edu.ucla.cens.budburstmobile.helper.BackgroundService.SERVICE";
@@ -128,6 +129,14 @@ public class HelperValues {
 	public static final int NOTIFI_LOCAL_LISTS = 12345678;
 	public static final int NOTIFI_USER_DEFINED_LISTS = 12345670;
 	public static final int NOTIFI_FLORACACHE_LISTS = 12345679;
+	
+	//protocols for user defined list 
+	
+	//whether the ListDetail page has a footer is set in the phenophaseID of the pbbItem
+	//it's ugly, but it prevents me from having to add a new extra to every intent going to ListDetail
+	public static final int NO_FOOTER = 1;
+	public static final int FOOTER = 0;
+	
 	
 	
 }
