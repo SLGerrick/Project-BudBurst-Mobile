@@ -217,7 +217,6 @@ public class OneTimeMainPage extends ListActivity {
 			} 
 			*/
 			// else from Quick_Capture...
-			 * */
 			
 		//	else {
 				Intent intent = new Intent(OneTimeMainPage.this, OneTimePBBLists.class);

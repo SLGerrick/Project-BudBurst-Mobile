@@ -226,12 +226,7 @@ public class ListUserDefinedCategory extends AsyncTask<ListItems, Void, Void>{
 			
 			@Override
 			public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-<<<<<<< HEAD
 				// TODO Auto-generated method stub		
-=======
-				// TODO Auto-generated method stub
-				
->>>>>>> slgerrick
 	/*			AlertDialog d = (AlertDialog) dialog;
                 ListView v = d.getListView();
                 v.getItemAtPosition(which);
